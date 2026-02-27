@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Reports</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 22px;
+            padding: 30px 22px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            margin: 20px;
+            flex-shrink: 0;
+        }
+
+        .sidebar h2 {
+            margin-bottom: 40px;
+            color: #4ea674;
+            font-weight: 700;
+            font-size: 1.8rem;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar a {
+            display:flex;
+            align-items:center;
+            padding:12px 16px;
+            border-radius:14px;
+            margin-bottom:12px;
+            color:#0f172a;
+            font-weight:500;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .sidebar a:hover { 
+            background: #4ea67418; 
+            transform: translateX(4px);
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 30px;
+            margin-right: 20px;
+        }
+
+        h1 { color: #333; margin-bottom: 20px; }
+
+        .filter-form {
+            background: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        label { margin-right: 15px; font-weight: bold; }
+        select { padding: 5px; margin-right: 10px; }
+        button { padding: 6px 12px; background: #4CAF50; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #45a049; }
+        .export-btn { background: #2196F3; margin-left: 10px; }
+        .export-btn:hover { background: #1976D2; }
+        form.inline { display: inline-block; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #4CAF50; color: #fff; }
+        tr:hover { background-color: #f1f1f1; }
+    </style>
+</head>
+<body>
+
+    {% include 'payslip_app/admin_sidebar.html' %}
+
+    <div class="main-content">
+        <h1>Admin Reports</h1>
+
+        <div class="filter-form">
+            <form method="get" class="inline">
+                <label>Reason:
+                    <select name="reason">
+                        <option value="">-- All --</option>
+                        {% for reason in reasons %}
+                            <option value="{{ reason }}" {% if reason == selected_reason %}selected{% endif %}>{{ reason }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label>Status:
+                    <select name="status">
+                        <option value="">-- All --</option>
+                        {% for status in statuses %}
+                            <option value="{{ status }}" {% if status == selected_status %}selected{% endif %}>{{ status }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <label>Year:
+                    <select name="year">
+                        <option value="">-- All --</option>
+                        {% for year in years %}
+                            <option value="{{ year }}" {% if year|stringformat:"s" == selected_year %}selected{% endif %}>{{ year }}</option>
+                        {% endfor %}
+                    </select>
+                </label>
+
+                <button type="submit">Filter</button>
+            </form>
+
+            <form method="get" action="{% url 'export_reports' %}" class="inline">
+                <input type="hidden" name="reason" value="{{ selected_reason }}">
+                <input type="hidden" name="status" value="{{ selected_status }}">
+                <input type="hidden" name="year" value="{{ selected_year }}">
+                <button type="submit" class="export-btn">Export CSV</button>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Reference</th>
+                    <th>Name</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Year</th>
+                    <th>Uploaded Months</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for req in requests %}
+                <tr>
+                    <td>{{ req.reference_number }}</td>
+                    <td>{{ req.full_name }}</td>
+                    <td>{{ req.reason }}</td>
+                    <td>{{ req.status }}</td>
+                    <td>{{ req.year }}</td>
+                    <td>
+                        {% for file in req.payslip_files.all %}
+                            {{ file.month }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No requests found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</body>
+</html>

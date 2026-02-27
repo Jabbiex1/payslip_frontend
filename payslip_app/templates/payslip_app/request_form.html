@@ -1,0 +1,339 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Payslip — MoF Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900: #0f2d5e;
+  --blue-700: #1d4ed8;
+  --blue-500: #3b82f6;
+  --blue-100: #dbeafe;
+  --blue-50:  #eff6ff;
+  --slate-900: #0f172a;
+  --slate-700: #334155;
+  --slate-500: #64748b;
+  --slate-300: #cbd5e1;
+  --slate-100: #f1f5f9;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --gold: #f5c842;
+  --shadow: 0 4px 24px rgba(15,45,94,.13);
+  --shadow-lg: 0 16px 48px rgba(15,45,94,.18);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
+
+.bg {
+  position: fixed; inset: 0; z-index: -1;
+  background: url("{% static 'images/background_image.jpg' %}") center/cover no-repeat;
+  animation: bgZoom 22s ease-in-out infinite alternate;
+}
+.bg::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(10,25,60,.85) 0%, rgba(15,45,94,.7) 100%);
+}
+@keyframes bgZoom { from { transform:scale(1); } to { transform:scale(1.07); } }
+
+/* NAV */
+nav {
+  position: fixed; top:0; left:0; right:0; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 40px;
+  background: rgba(10,25,60,.4);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.nav-logo img { width:40px; height:40px; object-fit:contain; }
+.nav-logo-text strong { display:block; font-size:0.9rem; font-weight:700; color:white; }
+.nav-logo-text span { font-size:0.7rem; color:rgba(191,219,254,.8); }
+.nav-back {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 16px;
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2);
+  border-radius:8px; color:white; font-size:0.85rem; font-weight:600;
+  text-decoration:none; transition:all .2s;
+}
+.nav-back:hover { background:rgba(255,255,255,.2); }
+
+/* PAGE LAYOUT */
+.page {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 100px 24px 48px;
+}
+.page-inner {
+  display: flex; gap: 48px; max-width: 1100px; width:100%;
+  align-items: flex-start; flex-wrap: wrap;
+}
+
+/* LEFT */
+.left {
+  flex: 1; min-width: 260px;
+  color: white; padding-top: 20px;
+}
+.left h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.8rem; line-height: 1.1;
+  margin-bottom: 16px;
+}
+.left h1 em { font-style:normal; color:var(--gold); }
+.left p { font-size:1rem; color:rgba(255,255,255,.75); line-height:1.7; max-width:400px; }
+
+.steps { margin-top:32px; display:flex; flex-direction:column; gap:14px; }
+.step { display:flex; align-items:flex-start; gap:12px; }
+.step-num {
+  width:28px; height:28px; flex-shrink:0;
+  background:var(--blue-700); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.75rem; font-weight:700; color:white;
+}
+.step-text strong { display:block; font-size:0.875rem; color:white; }
+.step-text span { font-size:0.78rem; color:rgba(255,255,255,.6); }
+
+/* FORM CARD */
+.form-card {
+  flex: 1.2; min-width: 320px;
+  background: white; border-radius: 20px;
+  padding: 36px 32px;
+  box-shadow: var(--shadow-lg);
+}
+.form-card h2 {
+  font-size: 1.25rem; font-weight: 700;
+  color: var(--blue-900); margin-bottom: 24px;
+  padding-bottom: 16px; border-bottom: 1px solid var(--slate-100);
+}
+
+/* ALERTS */
+.alert {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:14px 16px; border-radius:12px; margin-bottom:20px;
+  font-size:0.875rem; font-weight:500;
+}
+.alert.success { background:#d1fae5; color:#065f46; border:1px solid #a7f3d0; }
+.alert.error   { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+.alert-icon { font-size:1.1rem; flex-shrink:0; }
+.ref-number {
+  display:inline-block; margin-top:8px;
+  font-family:'DM Mono',monospace; font-size:1rem; font-weight:700;
+  background:rgba(22,163,74,.15); padding:4px 10px; border-radius:6px;
+}
+
+/* FORM GRID */
+.form-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+.full { grid-column: span 2; }
+
+.field { display:flex; flex-direction:column; gap:5px; }
+.field label {
+  font-size:0.72rem; font-weight:600; text-transform:uppercase;
+  letter-spacing:.06em; color:var(--slate-500);
+}
+.field input,
+.field select,
+.field textarea {
+  font-family:'DM Sans',sans-serif;
+  font-size:0.9rem; padding:10px 12px;
+  border:1.5px solid var(--slate-300); border-radius:10px;
+  color:var(--slate-900); background:white;
+  transition:border-color .2s, box-shadow .2s;
+  width:100%;
+}
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  outline:none; border-color:var(--blue-500);
+  box-shadow:0 0 0 3px rgba(59,130,246,.12);
+}
+.field select[multiple] { height:110px; padding:8px; }
+
+.field input[type="file"] {
+  padding:8px 10px; font-size:0.82rem;
+  background:var(--slate-100); cursor:pointer;
+}
+
+/* SUBMIT */
+.submit-btn {
+  width:100%; margin-top:20px;
+  padding:13px; border:none; border-radius:12px;
+  background:var(--blue-700); color:white;
+  font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:700;
+  cursor:pointer; transition:all .25s;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.submit-btn:hover { background:#1e40af; transform:translateY(-1px); box-shadow:0 8px 20px rgba(29,78,216,.35); }
+.submit-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+/* SPINNER */
+.spinner-wrap {
+  display:none; align-items:center; justify-content:center;
+  gap:10px; padding:16px; background:var(--blue-50);
+  border-radius:10px; margin-bottom:16px;
+  font-size:0.875rem; color:var(--blue-700); font-weight:600;
+}
+.spinner {
+  width:20px; height:20px;
+  border:3px solid var(--blue-100);
+  border-top-color:var(--blue-700);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* MOBILE */
+@media(max-width:900px){
+  nav { padding:14px 20px; }
+  .page { padding:80px 16px 32px; }
+  .page-inner { flex-direction:column; gap:24px; }
+  .left h1 { font-size:2rem; }
+  .form-grid { grid-template-columns:1fr; }
+  .full { grid-column:span 1; }
+  .form-card { padding:24px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">
+    <img src="{% static 'images/logo.png' %}" alt="MoF">
+    <div class="nav-logo-text">
+      <strong>Ministry of Finance</strong>
+      <span>Sierra Leone</span>
+    </div>
+  </a>
+  <a href="{% url 'home' %}" class="nav-back">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+    Back to Home
+  </a>
+</nav>
+
+<div class="page">
+  <div class="page-inner">
+
+    <!-- LEFT -->
+    <div class="left">
+      <h1>Request Your<br><em>Payslip</em></h1>
+      <p>Submit a formal payslip request. Once approved, your documents will be uploaded and available for download.</p>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Fill in your details</strong><span>Enter employee info accurately</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Upload your ID</strong><span>Front and back of your ID card</span></div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Submit & track</strong><span>Use reference number to check status</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="form-card">
+      <h2>Payslip Request Form</h2>
+
+      {% if success %}
+      <div class="alert success">
+        <span class="alert-icon">✓</span>
+        <div>Request submitted successfully!<br>
+          <span class="ref-number">Ref: {{ reference_number }}</span>
+        </div>
+      </div>
+      {% elif error %}
+      <div class="alert error">
+        <span class="alert-icon">✕</span>
+        <div>{{ error }}</div>
+      </div>
+      {% endif %}
+
+      <div class="spinner-wrap" id="spinnerWrap">
+        <div class="spinner"></div>
+        Submitting your request...
+      </div>
+
+      <form id="request-form" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-grid">
+          <div class="field">
+            <label>Full Name</label>
+            <input type="text" name="full_name" placeholder="e.g. Fatima Conteh" required>
+          </div>
+          <div class="field">
+            <label>Employee Pincode</label>
+            <input type="text" name="employee_pincode" placeholder="e.g. 10045" required>
+          </div>
+          <div class="field">
+            <label>MDA / Department</label>
+            <input type="text" name="department" placeholder="e.g. Ministry of Health" required>
+          </div>
+          <div class="field">
+            <label>Job Title</label>
+            <input type="text" name="job_title" placeholder="e.g. Senior Accountant" required>
+          </div>
+          <div class="field">
+            <label>Phone Number</label>
+            <input type="text" name="phone_number" placeholder="e.g. +232 76 000 000" required>
+          </div>
+          <div class="field">
+            <label>Email (optional)</label>
+            <input type="email" name="email" placeholder="you@example.com">
+          </div>
+          <div class="field full">
+            <label>Reason for Request</label>
+            <input type="text" name="reason" placeholder="e.g. Bank loan application" required>
+          </div>
+          <div class="field full">
+            <label>Months (hold Ctrl/Cmd to select multiple)</label>
+            <select name="months" multiple required>
+              {% for month in months %}
+              <option value="{{ month }}">{{ month }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label>Year</label>
+            <select name="year" required>
+              {% for y in years %}
+              <option value="{{ y }}">{{ y }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label>ID Card — Front</label>
+            <input type="file" name="id_card_front" accept="image/*,.pdf" required>
+          </div>
+          <div class="field full">
+            <label>ID Card — Back</label>
+            <input type="file" name="id_card_back" accept="image/*,.pdf" required>
+          </div>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Submit Request
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const form = document.getElementById('request-form');
+const spinner = document.getElementById('spinnerWrap');
+const btn = document.getElementById('submitBtn');
+
+form.addEventListener('submit', function() {
+  spinner.style.display = 'flex';
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+});
+</script>
+</body>
+</html>

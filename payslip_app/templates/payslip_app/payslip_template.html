@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Payslip - {{ full_name }}</title>
+<style>
+  @page {
+    size: A4;
+    margin: 2cm 2cm 4cm 2cm;
+  }
+
+  body {
+    font-family: "Times New Roman", serif;
+    font-size: 13px;
+    color: #000;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* SIGNATURE — fixed bottom, repeats on every page in xhtml2pdf */
+  .signature-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 10px 2cm 12px;
+    border-top: 1px solid #000;
+    background: white;
+    text-align: left;
+  }
+  .signature-footer img {
+    height: 50px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .signature-footer p {
+    margin: 0;
+    font-size: 11px;
+    font-family: "Times New Roman", serif;
+  }
+  .signature-footer .sig-name  { font-weight: bold; }
+  .signature-footer .sig-title { font-style: italic; }
+
+  /* HEADER */
+  .header {
+    width: 100%;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+  }
+  .header-inner {
+    display: table;
+    width: 100%;
+  }
+  .col-logo {
+    display: table-cell;
+    width: 70px;
+    vertical-align: middle;
+  }
+  .col-logo img { height: 60px; }
+  .col-text {
+    display: table-cell;
+    vertical-align: middle;
+    text-align: center;
+  }
+  .col-text .gov-title {
+    font-size: 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 2px;
+  }
+  .col-text .ministry-name {
+    font-size: 13px;
+    font-weight: bold;
+    margin: 0 0 2px;
+  }
+  .col-text .doc-type {
+    font-size: 12px;
+    margin: 0;
+    font-style: italic;
+  }
+  .col-right {
+    display: table-cell;
+    width: 130px;
+    vertical-align: middle;
+    text-align: right;
+    font-size: 11px;
+  }
+
+  /* EMPLOYEE INFO */
+  .info { margin-top: 10px; margin-bottom: 16px; }
+  .info p { margin: 4px 0; font-size: 13px; }
+
+  /* TABLE */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  th, td {
+    border: 1px solid #333;
+    padding: 7px 9px;
+    text-align: left;
+  }
+  th { background-color: #f2f2f2; font-weight: bold; }
+
+  /* NOTE */
+  .doc-note {
+    margin-top: 18px;
+    font-size: 10px;
+    color: #555;
+    text-align: center;
+    border-top: 1px solid #ccc;
+    padding-top: 6px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SIGNATURE — appears at bottom of every page -->
+<div class="signature-footer">
+  <img src="{% static 'images/signature.jpeg' %}" alt="Signature">
+  <p class="sig-name">Director General of Finance</p>
+  <p class="sig-title">Ministry of Finance, Republic of Sierra Leone</p>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="col-logo">
+      <img src="{% static 'images/logo.png' %}" alt="Government Logo">
+    </div>
+    <div class="col-text">
+      <p class="gov-title">Government of Sierra Leone</p>
+      <p class="ministry-name">Ministry of Finance</p>
+      <p class="doc-type">Official Employee Payslip</p>
+    </div>
+    <div class="col-right">
+      <p><strong>Year:</strong> {{ year }}</p>
+      <p><strong>Date:</strong> {{ request_time|date:"d M Y" }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- EMPLOYEE INFO -->
+<div class="info">
+    <p><strong>Full Name:</strong> {{ full_name }}</p>
+    <p><strong>PIN Code:</strong> {{ pin_code }}</p>
+    <p><strong>National ID (NIN):</strong> {{ nin }}</p>
+    <p><strong>Department:</strong> {{ department }}</p>
+    <p><strong>Ministry / Organisation:</strong> {{ ministry }}</p>
+    <p><strong>Date of Birth:</strong> {{ dob|date:"d M Y" }}</p>
+</div>
+
+<!-- PAYROLL TABLE -->
+<table>
+    <thead>
+        <tr>
+            <th>Month</th>
+            <th>Job Title</th>
+            <th>Gross Salary</th>
+            <th>Allowances</th>
+            <th>Deductions</th>
+            <th>Net Salary</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in months %}
+        <tr>
+            <td>{{ p.month }}</td>
+            <td>{{ p.job_title }}</td>
+            <td>{{ p.salary }}</td>
+            <td>{{ p.allowances }}</td>
+            <td>{{ p.deductions }}</td>
+            <td>{{ p.net_salary }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="doc-note">
+    This document is computer generated. For queries contact the ICT Directorate, Ministry of Finance, Sierra Leone.
+</div>
+
+</body>
+</html>

@@ -1,0 +1,11 @@
+<h1>Request Payslip</h1>
+
+{% if error %}
+  <p style="color:red">{{ error }}</p>
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Generate Payslip</button>
+</form>

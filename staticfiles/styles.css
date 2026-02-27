@@ -1,0 +1,62 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0; padding: 0;
+}
+
+header {
+    background-color: #004080;
+    color: white;
+    padding: 20px;
+    position: relative;
+}
+
+header .logo {
+    height: 60px;
+}
+
+header .admin-button {
+    position: absolute;
+    right: 20px;
+    top: 25px;
+    background-color: white;
+    color: #004080;
+    padding: 8px 12px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+main {
+    margin: 50px 0;
+}
+
+.buttons .btn {
+    display: inline-block;
+    background-color: #004080;
+    color: white;
+    padding: 15px 30px;
+    margin: 20px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 18px;
+}
+
+footer {
+    background-color: #f0f0f0;
+    padding: 20px;
+}
+@media (max-width: 768px) {
+  table {
+    font-size: 12px;
+  }
+
+  .container {
+    padding: 10px;
+  }
+
+  button {
+    width: 100%;
+    margin-bottom: 8px;
+  }
+}

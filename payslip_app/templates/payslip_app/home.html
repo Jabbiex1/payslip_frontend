@@ -1,0 +1,248 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sierra Leone Payslip Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900: #0f2d5e;
+  --blue-700: #1d4ed8;
+  --blue-500: #3b82f6;
+  --blue-200: #bfdbfe;
+  --blue-50:  #eff6ff;
+  --gold: #f5c842;
+  --gold-dark: #d4a017;
+  --white: #ffffff;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body, html { height:100%; overflow-x:hidden; font-family:'DM Sans', sans-serif; }
+
+/* BG */
+.bg {
+  position: fixed; inset: 0; z-index: -1;
+  background: url("{% static 'images/background_image.jpg' %}") center/cover no-repeat;
+  animation: bgZoom 22s ease-in-out infinite alternate;
+}
+.bg::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(10,25,60,.82) 0%, rgba(15,45,94,.65) 60%, rgba(10,25,60,.5) 100%);
+}
+@keyframes bgZoom { from { transform: scale(1); } to { transform: scale(1.07); } }
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 10;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 48px;
+  background: rgba(10,25,60,.3);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.nav-logo { display: flex; align-items: center; gap: 12px; }
+.nav-logo img { width: 44px; height: 44px; object-fit: contain; }
+.nav-logo-text { color: white; }
+.nav-logo-text strong { display: block; font-size: 0.95rem; font-weight: 700; }
+.nav-logo-text span { font-size: 0.72rem; color: var(--blue-200); opacity: .85; }
+
+.nav-signin {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 20px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 10px;
+  color: white; font-size: 0.875rem; font-weight: 600;
+  text-decoration: none;
+  transition: all .25s;
+  backdrop-filter: blur(6px);
+}
+.nav-signin:hover { background: rgba(255,255,255,.2); transform: translateY(-1px); }
+
+/* HERO */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 120px 48px 80px;
+  position: relative; z-index: 2;
+  max-width: 780px;
+}
+
+.hero-eyebrow {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(245,200,66,.15);
+  border: 1px solid rgba(245,200,66,.3);
+  border-radius: 30px;
+  padding: 5px 14px;
+  margin-bottom: 24px;
+  width: fit-content;
+}
+.hero-eyebrow span {
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--gold); letter-spacing: .06em; text-transform: uppercase;
+}
+.hero-eyebrow .dot {
+  width: 6px; height: 6px;
+  background: var(--gold); border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.4; } }
+
+.hero h1 {
+  font-family: 'DM Serif Display', serif;
+  font-size: 3.6rem;
+  color: white;
+  line-height: 1.1;
+  text-shadow: 0 4px 24px rgba(0,0,0,.5);
+  margin-bottom: 18px;
+}
+.hero h1 em { font-style: normal; color: var(--gold); }
+
+.hero p {
+  font-size: 1.1rem;
+  color: rgba(255,255,255,.8);
+  line-height: 1.7;
+  max-width: 520px;
+  margin-bottom: 40px;
+}
+
+/* ACTION CARDS */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  max-width: 520px;
+}
+
+.action-card {
+  display: flex; flex-direction: column;
+  padding: 20px 22px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 16px;
+  cursor: pointer;
+  text-decoration: none;
+  color: white;
+  backdrop-filter: blur(12px);
+  transition: all .25s ease;
+  position: relative; overflow: hidden;
+}
+.action-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.05), transparent);
+  opacity: 0; transition: opacity .25s;
+}
+.action-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.3); box-shadow: 0 16px 40px rgba(0,0,0,.35); }
+.action-card:hover::before { opacity: 1; }
+
+.action-card.primary {
+  background: var(--blue-700);
+  border-color: rgba(59,130,246,.5);
+}
+.action-card.primary:hover { background: #1e40af; }
+
+.action-card.gold {
+  background: linear-gradient(135deg, #d4a017, #f5c842);
+  border-color: transparent;
+  color: #0b2d5e;
+}
+.action-card.gold:hover { filter: brightness(1.07); }
+
+.action-icon {
+  font-size: 1.5rem; margin-bottom: 10px;
+}
+.action-label {
+  font-size: 0.95rem; font-weight: 700; margin-bottom: 3px;
+}
+.action-desc {
+  font-size: 0.75rem; opacity: .75; line-height: 1.4;
+}
+.action-card.gold .action-desc { color: rgba(11,45,94,.75); }
+
+/* FOOTER */
+footer {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  z-index: 10;
+  background: rgba(10,25,60,.6);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding: 12px 48px;
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 8px;
+}
+footer span { font-size: 0.78rem; color: rgba(255,255,255,.55); }
+footer strong { color: rgba(255,255,255,.8); }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  nav { padding: 14px 20px; }
+  .hero { padding: 100px 20px 100px; }
+  .hero h1 { font-size: 2.4rem; }
+  .hero p { font-size: 1rem; }
+  .action-grid { grid-template-columns: 1fr; max-width: 100%; }
+  footer { padding: 10px 20px; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">
+    <img src="{% static 'images/logo.png' %}" alt="MoF Logo">
+    <div class="nav-logo-text">
+      <strong>Ministry of Finance</strong>
+      <span>Republic of Sierra Leone</span>
+    </div>
+  </div>
+  <a href="{% url 'admin_login' %}" class="nav-signin">
+    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg>
+    Admin Sign In
+  </a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">
+    <span class="dot"></span>
+    <span>Official Government Portal</span>
+  </div>
+
+  <h1>Access Your<br><em>Payslip</em> Online</h1>
+  <p>Secure, transparent and efficient access to government payroll records. Powered by the ICT Directorate, Ministry of Finance.</p>
+
+  <div class="action-grid">
+    <a href="{% url 'generate_form' %}" class="action-card primary">
+      <div class="action-label">Generate Payslip</div>
+      <div class="action-desc">Instant download using PIN & NIN</div>
+    </a>
+    <a href="{% url 'request_form' %}" class="action-card">
+      <div class="action-label">Request Payslip</div>
+      <div class="action-desc">Submit a formal payslip request</div>
+    </a>
+    <a href="{% url 'check_payslip' %}" class="action-card gold">
+      <div class="action-label">Check Status</div>
+      <div class="action-desc">Track your request by reference</div>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span><strong>Ministry of Finance</strong> — Sierra Leone</span>
+  <span>© 2026 All rights reserved</span>
+  <span>Powered by ICT Directorate</span>
+</footer>
+
+</body>
+</html>

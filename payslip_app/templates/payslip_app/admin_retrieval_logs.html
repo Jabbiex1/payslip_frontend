@@ -1,0 +1,290 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Retrieval Logs — MoF Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900:#0f2d5e;--blue-800:#1a3f7a;--blue-700:#1d4ed8;--blue-500:#3b82f6;
+  --blue-400:#60a5fa;--blue-100:#dbeafe;--blue-50:#eff6ff;
+  --slate-900:#0f172a;--slate-700:#334155;--slate-500:#64748b;
+  --slate-300:#cbd5e1;--slate-100:#f1f5f9;
+  --success:#16a34a;--danger:#dc2626;
+  --sidebar-w:260px;--radius:16px;
+  --shadow-sm:0 1px 3px rgba(15,45,94,.07);
+  --shadow:0 4px 16px rgba(15,45,94,.10);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--slate-100);color:var(--slate-900);min-height:100vh;display:flex;}
+a{text-decoration:none;color:inherit;}
+
+/* SIDEBAR */
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--blue-900);display:flex;flex-direction:column;padding:28px 18px 24px;position:fixed;top:0;left:0;bottom:0;z-index:100;box-shadow:4px 0 24px rgba(15,45,94,.18);}
+.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:36px;padding:0 8px;}
+.logo-mark{width:36px;height:36px;background:var(--blue-500);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:1rem;flex-shrink:0;}
+.sidebar-logo span{font-size:1.05rem;font-weight:700;color:white;line-height:1.2;}
+.sidebar-logo small{display:block;font-size:0.7rem;color:var(--blue-400);font-weight:400;letter-spacing:.04em;}
+.nav-label{font-size:0.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-400);padding:0 12px;margin-bottom:8px;margin-top:20px;}
+.sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.75);font-size:0.9rem;font-weight:500;margin-bottom:4px;transition:all .2s;}
+.sidebar nav a svg{opacity:.7;flex-shrink:0;}
+.sidebar nav a:hover{background:rgba(255,255,255,.1);color:white;}
+.sidebar nav a.active{background:var(--blue-700);color:white;box-shadow:0 4px 12px rgba(29,78,216,.4);}
+.sidebar nav a.active svg{opacity:1;}
+.sidebar-footer{margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);}
+.sidebar-footer form button{width:100%;padding:10px;background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.3);border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.875rem;cursor:pointer;transition:all .2s;}
+.sidebar-footer form button:hover{background:rgba(220,38,38,.3);color:#fecaca;}
+
+/* MAIN */
+.main{margin-left:var(--sidebar-w);flex:1;padding:28px 32px;max-width:calc(100vw - var(--sidebar-w));}
+
+/* TOPBAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.topbar h1{font-size:1.5rem;font-weight:700;color:var(--blue-900);}
+.topbar p{font-size:0.85rem;color:var(--slate-500);margin-top:2px;}
+.user-chip{display:flex;align-items:center;gap:8px;background:white;border-radius:10px;padding:6px 12px 6px 6px;box-shadow:var(--shadow-sm);}
+.user-avatar{width:28px;height:28px;background:var(--blue-700);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.75rem;font-weight:700;}
+.user-chip span{font-size:0.85rem;font-weight:600;}
+
+/* FILTER CARD */
+.filter-card{background:white;border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow-sm);border:1px solid rgba(15,45,94,.06);margin-bottom:20px;}
+.filter-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.filter-card-header h3{font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--slate-500);}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:4px;}
+.filter-group label{font-size:0.72rem;font-weight:600;color:var(--slate-500);text-transform:uppercase;letter-spacing:.05em;}
+.filter-group input,.filter-group select{font-family:'DM Sans',sans-serif;font-size:0.875rem;padding:8px 12px;border:1px solid var(--slate-300);border-radius:8px;background:white;color:var(--slate-900);min-width:160px;transition:border-color .2s;}
+.filter-group input:focus,.filter-group select:focus{outline:none;border-color:var(--blue-500);box-shadow:0 0 0 3px rgba(59,130,246,.12);}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;text-decoration:none;}
+.btn:hover{filter:brightness(1.07);transform:translateY(-1px);}
+.btn-primary{background:var(--blue-700);color:white;}
+.btn-ghost{background:var(--slate-100);color:var(--slate-700);border:1px solid var(--slate-300);}
+.btn-success{background:var(--success);color:white;}
+.btn-danger-soft{background:#fee2e2;color:#991b1b;border:none;}
+.btn-sm{padding:5px 10px;font-size:0.78rem;}
+
+/* TABLE CARD */
+.table-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid rgba(15,45,94,.06);overflow:hidden;}
+.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--slate-300);}
+.table-card-header h3{font-size:1rem;font-weight:700;color:var(--blue-900);}
+.table-card-header-right{display:flex;align-items:center;gap:10px;}
+.record-count{font-size:0.8rem;color:var(--slate-500);background:var(--slate-100);padding:3px 10px;border-radius:20px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--blue-50);border-bottom:2px solid var(--blue-100);}
+th{text-align:left;padding:12px 16px;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--blue-700);white-space:nowrap;}
+td{padding:11px 16px;font-size:0.875rem;border-bottom:1px solid var(--slate-100);color:var(--slate-700);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--blue-50);}
+.mono{font-family:'DM Mono',monospace;font-size:0.82rem;}
+.ip-badge{font-family:'DM Mono',monospace;font-size:0.78rem;background:var(--blue-50);color:var(--blue-700);padding:2px 8px;border-radius:6px;white-space:nowrap;}
+.unknown-badge{font-size:0.72rem;background:var(--slate-100);color:var(--slate-500);padding:2px 8px;border-radius:20px;font-style:italic;}
+.time-text{color:var(--slate-500);font-size:0.82rem;white-space:nowrap;}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-top:1px solid var(--slate-300);flex-wrap:wrap;gap:10px;}
+.pagination-info{font-size:0.82rem;color:var(--slate-500);}
+.pagination-controls{display:flex;gap:4px;align-items:center;}
+.page-btn{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 8px;background:white;border:1px solid var(--slate-300);border-radius:7px;font-size:0.82rem;color:var(--slate-700);text-decoration:none;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.page-btn:hover{border-color:var(--blue-500);color:var(--blue-700);}
+.page-btn.active{background:var(--blue-700);border-color:var(--blue-700);color:white;font-weight:700;}
+
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:70px 20px;color:var(--slate-500);}
+.empty-state svg{margin:0 auto 14px;display:block;opacity:.3;}
+.empty-state p{font-size:0.9rem;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:100%;min-height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:16px;}
+  .sidebar nav{display:flex;flex-wrap:wrap;gap:6px;}
+  .sidebar nav a{margin-bottom:0;}
+  .main{margin-left:0;padding:16px;max-width:100%;}
+  .filter-row{flex-direction:column;}
+  .filter-group input,.filter-group select{min-width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">M</div>
+    <span>MoF Admin<small>Payslip Portal</small></span>
+  </div>
+  <div class="nav-label">Navigation</div>
+  <nav>
+    <a href="{% url 'admin_dashboard' %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a href="{% url 'admin_retrieval_logs' %}" class="active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
+      Retrieval Logs
+    </a>
+    <a href="{% url 'admin_audit_logs' %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Audit Logs
+    </a>
+    <a href="{% url 'admin_notifications' %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg>
+      Notifications
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <form method="post" action="{% url 'admin_logout' %}">
+      {% csrf_token %}
+      <button type="submit">Sign Out</button>
+    </form>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <h1>Retrieval Logs</h1>
+      <p>Record of all payslip generation attempts</p>
+    </div>
+    <div class="user-chip">
+      <div class="user-avatar">{{ request.user.username|first|upper }}</div>
+      <span>{{ request.user.username }}</span>
+    </div>
+  </div>
+
+  <!-- FILTER CARD -->
+  <div class="filter-card">
+    <div class="filter-card-header">
+      <h3>Filter Logs</h3>
+    </div>
+    <form method="get">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>Ministry</label>
+          <input type="text" name="ministry" placeholder="e.g. Finance" value="{{ selected_ministry|default:'' }}">
+        </div>
+        <div class="filter-group">
+          <label>Month</label>
+          <input type="text" name="month" placeholder="e.g. January" value="{{ selected_month|default:'' }}">
+        </div>
+        <div class="filter-group">
+          <label>From Date</label>
+          <input type="date" name="start_date" value="{{ selected_start_date|default:'' }}">
+        </div>
+        <div class="filter-group">
+          <label>To Date</label>
+          <input type="date" name="end_date" value="{{ selected_end_date|default:'' }}">
+        </div>
+        <div style="display:flex;gap:8px;align-self:flex-end;">
+          <button type="submit" class="btn btn-primary">Filter</button>
+          <a href="{% url 'admin_retrieval_logs' %}" class="btn btn-ghost">Reset</a>
+          <a href="{% url 'export_retrieval_logs' %}?ministry={{ selected_ministry|default:'' }}&month={{ selected_month|default:'' }}&start_date={{ selected_start_date|default:'' }}&end_date={{ selected_end_date|default:'' }}"
+             class="btn btn-success">
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Export CSV
+          </a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <!-- TABLE CARD -->
+  <div class="table-card">
+    <div class="table-card-header">
+      <h3>All Retrieval Logs</h3>
+      <div class="table-card-header-right">
+        <span class="record-count">
+          {% if page_obj %}{{ page_obj.paginator.count }}{% else %}{{ logs|length }}{% endif %}
+          record{{ total_logs|default:logs|length|pluralize }}
+        </span>
+      </div>
+    </div>
+
+    {% if logs %}
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Date &amp; Time</th>
+            <th>Full Name</th>
+            <th>Pincode</th>
+            <th>Date of Birth</th>
+            <th>Department</th>
+            <th>Ministry</th>
+            <th>Year</th>
+            <th>Months</th>
+            <th>IP Address</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td><span class="time-text">{{ log.request_time|date:"d M Y, H:i" }}</span></td>
+            <td><strong>{% if log.full_name == "UNKNOWN" %}<span class="unknown-badge">UNKNOWN</span>{% else %}{{ log.full_name }}{% endif %}</strong></td>
+            <td><span class="mono">{% if log.pincode %}{{ log.pincode }}{% else %}<span class="unknown-badge">—</span>{% endif %}</span></td>
+            <td><span class="mono">{% if log.dob %}{{ log.dob|date:"d M Y" }}{% else %}<span class="unknown-badge">—</span>{% endif %}</span></td>
+            <td>{% if log.department == "UNKNOWN" %}<span class="unknown-badge">UNKNOWN</span>{% else %}{{ log.department }}{% endif %}</td>
+            <td>{% if log.ministry == "UNKNOWN" %}<span class="unknown-badge">UNKNOWN</span>{% else %}{{ log.ministry }}{% endif %}</td>
+            <td><span class="mono">{{ log.year|default:"—" }}</span></td>
+            <td style="max-width:160px;white-space:normal;font-size:0.82rem;">{{ log.months|default:"—" }}</td>
+            <td>{% if log.ip_address %}<span class="ip-badge">{{ log.ip_address }}</span>{% else %}<span class="unknown-badge">—</span>{% endif %}</td>
+            <td>
+              <form method="post" action="{% url 'delete_retrieval_log' log.pk %}"
+                    onsubmit="return confirm('Delete this log entry?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger-soft btn-sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+      <span class="pagination-info">
+        Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+        of {{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}
+      </span>
+      <div class="pagination-controls">
+        {% if page_obj.has_previous %}
+        <a class="page-btn" href="?page=1&ministry={{ selected_ministry }}&month={{ selected_month }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">«</a>
+        <a class="page-btn" href="?page={{ page_obj.previous_page_number }}&ministry={{ selected_ministry }}&month={{ selected_month }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">‹</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if page_obj.number == num %}
+            <span class="page-btn active">{{ num }}</span>
+          {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+            <a class="page-btn" href="?page={{ num }}&ministry={{ selected_ministry }}&month={{ selected_month }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a class="page-btn" href="?page={{ page_obj.next_page_number }}&ministry={{ selected_ministry }}&month={{ selected_month }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">›</a>
+        <a class="page-btn" href="?page={{ page_obj.paginator.num_pages }}&ministry={{ selected_ministry }}&month={{ selected_month }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">»</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
+      <p>No retrieval logs found{% if selected_ministry or selected_month or selected_start_date or selected_end_date %} for the selected filters{% endif %}.</p>
+    </div>
+    {% endif %}
+
+  </div><!-- end table-card -->
+
+</main>
+</body>
+</html>
