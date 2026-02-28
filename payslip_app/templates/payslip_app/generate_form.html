@@ -28,7 +28,7 @@ body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
 
 .bg {
   position: fixed; inset: 0; z-index: -1;
-  background: url("{% static 'images/background_image.jpg' %}") center/cover no-repeat;
+  background: url("{% static 'images/background2.jpg' %}") center/cover no-repeat;
   animation: bgZoom 22s ease-in-out infinite alternate;
 }
 .bg::after {
@@ -38,7 +38,7 @@ body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
 @keyframes bgZoom { from { transform:scale(1); } to { transform:scale(1.07); } }
 
 nav {
-  position: fixed; top:0; left:0; right:0; z-index:10;
+  position: relative; z-index:10;
   display:flex; align-items:center; justify-content:space-between;
   padding:16px 40px;
   background: rgba(10,25,60,.4);
@@ -61,7 +61,7 @@ nav {
 .page {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  padding: 100px 24px 48px;
+  padding: 40px 24px 48px;
 }
 .page-inner {
   display: flex; gap: 48px; max-width: 1100px; width:100%;
@@ -122,6 +122,17 @@ nav {
   box-shadow:0 0 0 3px rgba(59,130,246,.12);
 }
 .field select[multiple] { height:110px; padding:8px; }
+.section-title {
+  grid-column: span 2;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--blue-700);
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--slate-100);
+}
 
 .security-note {
   display:flex; align-items:center; gap:8px;
@@ -154,9 +165,17 @@ nav {
 }
 @keyframes spin { to { transform:rotate(360deg); } }
 
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline:3px solid var(--blue-100);
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+
 @media(max-width:900px){
   nav { padding:14px 20px; }
-  .page { padding:80px 16px 32px; }
+  .page { padding:28px 16px 32px; }
   .page-inner { flex-direction:column; gap:24px; }
   .left h1 { font-size:2rem; }
   .form-grid { grid-template-columns:1fr; }
@@ -228,6 +247,7 @@ nav {
       <form id="payslip-form" method="POST">
         {% csrf_token %}
         <div class="form-grid">
+          <div class="section-title">Identity Verification</div>
           <div class="field">
             <label>Full Name</label>
             <input type="text" name="full_name" placeholder="e.g. Fatima Conteh" required>
@@ -252,6 +272,7 @@ nav {
             <label>Ministry / Organisation</label>
             <input type="text" name="ministry" placeholder="e.g. Ministry of Health" required>
           </div>
+          <div class="section-title">Payslip Period</div>
           <div class="field full">
             <label>Months (hold Ctrl/Cmd for multiple)</label>
             <select name="months" multiple required>
@@ -271,7 +292,7 @@ nav {
         </div>
         <button type="submit" class="submit-btn" id="submitBtn">
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Download Payslip
+          Generate Payslip
         </button>
       </form>
     </div>
@@ -283,26 +304,36 @@ nav {
 const form = document.getElementById('payslip-form');
 const spinner = document.getElementById('spinnerWrap');
 const btn = document.getElementById('submitBtn');
+const defaultBtnHtml = btn.innerHTML;
+let resetTimer = null;
 
-form.addEventListener('submit', function(e) {
-  e.preventDefault();
+function resetGenerateUi() {
+  spinner.style.display = 'none';
+  btn.disabled = false;
+  btn.innerHTML = defaultBtnHtml;
+  form.reset();
+  if (resetTimer) {
+    clearTimeout(resetTimer);
+    resetTimer = null;
+  }
+}
 
-  // Show spinner, disable button
+form.addEventListener('submit', function() {
   spinner.style.display = 'flex';
   btn.disabled = true;
   btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:8px;"><span style="width:16px;height:16px;border:2.5px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;"></span>Generating PDF...</span>';
 
-  // After 3 seconds: reset form and UI, then submit
-  setTimeout(() => {
-    // Submit the form for real
-    form.submit();
+  // Fallback: ensure UI recovers even if browser keeps page open after download.
+  resetTimer = setTimeout(resetGenerateUi, 10000);
+});
 
-    // Reset UI state
-    spinner.style.display = 'none';
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg> Download Payslip';
-    form.reset();
-  }, 3000);
+// Most browsers refocus the page after download/save dialog interaction.
+window.addEventListener('focus', function() {
+  if (btn.disabled) setTimeout(resetGenerateUi, 250);
+});
+
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && btn.disabled) setTimeout(resetGenerateUi, 250);
 });
 </script>
 </body>

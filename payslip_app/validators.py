@@ -1,6 +1,7 @@
-# payslip_app/validators.py
+import os
 import re
 from django import forms
+from django.utils.text import get_valid_filename
 
 
 # ─────────────────────────────────────────
@@ -18,6 +19,13 @@ VALID_MONTHS = {
     'January','February','March','April','May','June',
     'July','August','September','October','November','December'
 }
+
+MAX_ID_UPLOAD_BYTES = 5 * 1024 * 1024
+MAX_PAYSLIP_UPLOAD_BYTES = 15 * 1024 * 1024
+
+ALLOWED_ID_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.pdf'}
+ALLOWED_ID_CONTENT_TYPES = {'image/jpeg', 'image/png', 'application/pdf'}
+ALLOWED_PAYSLIP_CONTENT_TYPES = {'application/pdf'}
 
 
 # ─────────────────────────────────────────
@@ -122,6 +130,65 @@ def validate_reason(value: str) -> str:
     if re.search(r'<[^>]+>', value):
         raise forms.ValidationError("Invalid characters in reason field.")
     return value
+
+
+def _peek_head(uploaded_file, size: int = 16) -> bytes:
+    position = uploaded_file.tell()
+    head = uploaded_file.read(size)
+    uploaded_file.seek(position)
+    return head
+
+
+def _sanitize_uploaded_name(uploaded_file, default_prefix: str) -> None:
+    original = os.path.basename(uploaded_file.name or "")
+    stem, ext = os.path.splitext(original)
+    stem = get_valid_filename(stem)[:80] or default_prefix
+    uploaded_file.name = f"{stem}{ext.lower()}"
+
+
+def validate_id_upload(uploaded_file, field_label: str) -> None:
+    if not uploaded_file:
+        raise forms.ValidationError(f"{field_label} is required.")
+    if uploaded_file.size > MAX_ID_UPLOAD_BYTES:
+        raise forms.ValidationError(f"{field_label} exceeds 5MB.")
+
+    ext = os.path.splitext(uploaded_file.name or "")[1].lower()
+    if ext not in ALLOWED_ID_EXTENSIONS:
+        raise forms.ValidationError(f"{field_label} must be JPG, PNG, or PDF.")
+
+    content_type = (getattr(uploaded_file, "content_type", "") or "").lower()
+    if content_type and content_type not in ALLOWED_ID_CONTENT_TYPES:
+        raise forms.ValidationError(f"{field_label} has an invalid content type.")
+
+    head = _peek_head(uploaded_file, 16)
+    if ext in {".jpg", ".jpeg"} and not head.startswith(b"\xff\xd8\xff"):
+        raise forms.ValidationError(f"{field_label} is not a valid JPEG.")
+    if ext == ".png" and not head.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise forms.ValidationError(f"{field_label} is not a valid PNG.")
+    if ext == ".pdf" and not head.startswith(b"%PDF"):
+        raise forms.ValidationError(f"{field_label} is not a valid PDF.")
+
+    _sanitize_uploaded_name(uploaded_file, "id_card")
+
+
+def validate_payslip_pdf_upload(uploaded_file) -> None:
+    if not uploaded_file:
+        raise forms.ValidationError("Please attach a payslip PDF file.")
+    if uploaded_file.size > MAX_PAYSLIP_UPLOAD_BYTES:
+        raise forms.ValidationError("Payslip file exceeds 15MB.")
+
+    ext = os.path.splitext(uploaded_file.name or "")[1].lower()
+    if ext != ".pdf":
+        raise forms.ValidationError("Payslip file must be a PDF.")
+
+    content_type = (getattr(uploaded_file, "content_type", "") or "").lower()
+    if content_type and content_type not in ALLOWED_PAYSLIP_CONTENT_TYPES:
+        raise forms.ValidationError("Payslip file has an invalid content type.")
+
+    if not _peek_head(uploaded_file, 4).startswith(b"%PDF"):
+        raise forms.ValidationError("Payslip file is not a valid PDF.")
+
+    _sanitize_uploaded_name(uploaded_file, "payslip")
 
 
 # ─────────────────────────────────────────

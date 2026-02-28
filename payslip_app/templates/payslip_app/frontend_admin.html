@@ -180,10 +180,18 @@ a{text-decoration:none;color:inherit;}
 .toast{background:var(--blue-900);color:white;padding:12px 18px;border-radius:10px;font-size:0.875rem;box-shadow:var(--shadow-lg);animation:toastIn .3s ease;}
 @keyframes toastIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline:3px solid var(--blue-100);
+  outline-offset:2px;
+}
+
 /* RESPONSIVE */
 @media(max-width:1100px){.stats-grid{grid-template-columns:repeat(3,1fr);}.content-row{grid-template-columns:1fr;}}
 @media(max-width:768px){.sidebar{width:100%;min-height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:16px;}.sidebar nav{display:flex;flex-wrap:wrap;gap:6px;}.sidebar nav a{margin-bottom:0;}.main{margin-left:0;padding:16px;max-width:100%;}.stats-grid{grid-template-columns:repeat(2,1fr);}.info-grid{grid-template-columns:repeat(2,1fr);}.filter-bar{flex-direction:column;}.filter-group input,.filter-group select{width:100%;}}
 @media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;}}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
 </style>
 </head>
 <body>
@@ -211,9 +219,17 @@ a{text-decoration:none;color:inherit;}
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
       Retrieval Logs
     </a>
+    <a href="{% url 'admin_download_logs' %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+      Download Logs
+    </a>
     <a href="{% url 'admin_audit_logs' %}">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Audit Logs
+    </a>
+    <a href="{% url 'admin_reports' %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+      Reports
     </a>
     <a href="{% url 'admin_notifications' %}">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg>
@@ -429,7 +445,7 @@ a{text-decoration:none;color:inherit;}
         {% for f in user.payslip_files.all %}
           <div class="file-item">
             <span>{{ f.month }}</span>
-            <a href="{{ f.file.url }}" target="_blank">↓ Download</a>
+            <a href="{% url 'download_payslip' f.id %}" target="_blank">↓ Download</a>
           </div>
         {% endfor %}
       {% else %}
@@ -586,7 +602,7 @@ function updateCount() {
 }
 
 function confirmBulk() {
-  const action = document.querySelector('[name="bulk_action"]').value;
+  const action = document.querySelector('[name="action"]').value;
   const count  = document.querySelectorAll('.row-checkbox:checked').length;
   if (!action) { showToast('Please select a bulk action first.', 'error'); return false; }
   if (count === 0) { showToast('Please select at least one request.', 'error'); return false; }

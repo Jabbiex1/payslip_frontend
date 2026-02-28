@@ -1,6 +1,7 @@
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django_otp.plugins.otp_totp.models import TOTPDevice
@@ -10,22 +11,24 @@ from django.views.decorators.cache import never_cache
 from django.http import HttpResponse, JsonResponse
 from django.core.mail import send_mail
 from django.core.cache import cache
+from django.core import signing
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.exceptions import ValidationError
 from django.utils import timezone as tz
 from django.db.models import Q
 from axes.decorators import axes_dispatch
 from django_ratelimit.decorators import ratelimit
 from django.template.loader import get_template
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponseForbidden
 from xhtml2pdf import pisa
 
 from .models import (
     PayslipFile, PayslipRequest, PayslipRetrievalLog,
-    EmployeePayslip, AdminAuditLog, PayrollData, audit
+    EmployeePayslip, AdminAuditLog, PayrollData, PayslipDownloadLog, audit
 )
 from .validators import (
     validate_generate_form, validate_request_form,
-    validate_reference_number,
+    validate_reference_number, validate_id_upload, validate_payslip_pdf_upload,
 )
 from .decorators import frontend_admin_required
 from .tasks import send_notifications_worker
@@ -44,6 +47,9 @@ ALL_MONTHS = [
 ]
 PAGE_SIZE          = 15   # rows per page on dashboard
 LOGS_PAGE_SIZE     = 20   # rows per page on retrieval logs
+DOWNLOAD_LOGS_PAGE_SIZE = 20
+DOWNLOAD_TOKEN_MAX_AGE = 600  # 10 minutes
+DOWNLOAD_TOKEN_SALT    = 'payslip-download-v1'
 
 
 # ─────────────────────────────────────────
@@ -57,6 +63,23 @@ def generate_reference():
 def get_client_ip(request):
     forwarded = request.META.get('HTTP_X_FORWARDED_FOR', '')
     return forwarded.split(',')[0].strip() if forwarded else request.META.get('REMOTE_ADDR', '')
+
+
+def log_download_attempt(request, payslip, status, reason):
+    try:
+        PayslipDownloadLog.objects.create(
+            payslip_file=payslip,
+            request_reference=payslip.request.reference_number if payslip else "",
+            month=payslip.month if payslip else "",
+            status=status,
+            reason=(reason or "")[:255],
+            ip_address=get_client_ip(request) or None,
+            session_key=request.session.session_key or "",
+            requested_by=request.user if request.user.is_authenticated else None,
+        )
+    except Exception:
+        # Logging should never block the download flow.
+        pass
 
 
 def get_dashboard_stats():
@@ -229,18 +252,9 @@ def admin_dashboard(request):
 # ─────────────────────────────────────────
 #  BULK ACTIONS
 # ─────────────────────────────────────────
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.shortcuts import redirect
-from django.contrib.auth.decorators import login_required
-from django.core.cache import cache
-
-@login_required(login_url='/frontend-admin/login/')
+@frontend_admin_required
+@require_POST
 def bulk_action(request):
-    if request.method != "POST":
-        messages.error(request, "Invalid request method.")
-        return redirect('admin_dashboard')
-
     action = request.POST.get("action")
     selected = request.POST.getlist("selected_ids")
 
@@ -346,6 +360,7 @@ def admin_reports(request):
 
 @never_cache
 @frontend_admin_required
+@require_POST
 def upload_payslip_view(request, request_id):
     if request.method == "POST":
         month = request.POST.get("month", "").strip()
@@ -354,6 +369,12 @@ def upload_payslip_view(request, request_id):
 
         if month not in ALL_MONTHS:
             messages.error(request, "Invalid month selected.")
+            return redirect("admin_dashboard")
+
+        try:
+            validate_payslip_pdf_upload(file)
+        except ValidationError as exc:
+            messages.error(request, str(exc))
             return redirect("admin_dashboard")
 
         PayslipFile.objects.create(request=req, month=month, file=file)
@@ -465,6 +486,7 @@ def export_retrieval_logs(request):
 
 @never_cache
 @frontend_admin_required
+@require_POST
 def approve_request(request, pk):
     req = get_object_or_404(PayslipRequest, pk=pk)
     req.status = 'approved'
@@ -485,6 +507,7 @@ def approve_request(request, pk):
 
 @never_cache
 @frontend_admin_required
+@require_POST
 def reject_request(request, pk):
     req = get_object_or_404(PayslipRequest, pk=pk)
     req.status = 'rejected'
@@ -505,6 +528,7 @@ def reject_request(request, pk):
 
 @never_cache
 @frontend_admin_required
+@require_POST
 def delete_request(request, pk):
     req = get_object_or_404(PayslipRequest, pk=pk)
     ref = req.reference_number
@@ -517,6 +541,7 @@ def delete_request(request, pk):
 
 @never_cache
 @frontend_admin_required
+@require_POST
 def mark_completed(request, pk):
     req = get_object_or_404(PayslipRequest, pk=pk)
     if not req.payslip_files.exists():
@@ -546,6 +571,11 @@ def request_form_view(request):
             error = " | ".join(errors.values())
         else:
             try:
+                id_card_front = request.FILES.get("id_card_front")
+                id_card_back = request.FILES.get("id_card_back")
+                validate_id_upload(id_card_front, "ID card front")
+                validate_id_upload(id_card_back, "ID card back")
+
                 ref = generate_reference()
                 PayslipRequest.objects.create(
                     full_name        = cleaned['full_name'],
@@ -556,14 +586,16 @@ def request_form_view(request):
                     email            = request.POST.get('email', '').strip()[:254],
                     months           = cleaned['months'],
                     year             = cleaned['year'],
-                    id_card_front    = request.FILES.get('id_card_front'),
-                    id_card_back     = request.FILES.get('id_card_back'),
+                    id_card_front    = id_card_front,
+                    id_card_back     = id_card_back,
                     reference_number = ref,
                     reason           = cleaned['reason'],
                     status           = 'pending',
                 )
                 success, reference_number = True, ref
                 cache.delete('dashboard_stats')
+            except ValidationError as exc:
+                error = str(exc)
             except Exception:
                 error = "Submission failed. Please try again."
 
@@ -591,9 +623,26 @@ def check_payslip_view(request):
 
         try:
             req = PayslipRequest.objects.get(reference_number=ref_number)
-            uploaded_months  = list(req.payslip_files.values_list('month', flat=True))
+            download_files = list(req.payslip_files.all().order_by('uploaded_at'))
+            if not request.session.session_key:
+                request.session.save()
+            session_key = request.session.session_key
+
+            for f in download_files:
+                f.download_token = signing.dumps(
+                    {
+                        'file_id': f.id,
+                        'request_id': req.id,
+                        'reference_number': req.reference_number,
+                        'session_key': session_key,
+                    },
+                    salt=DOWNLOAD_TOKEN_SALT
+                )
+
+            uploaded_months  = [f.month for f in download_files]
             missing_months   = [m for m in (req.months or []) if m not in uploaded_months]
             context["req"]            = req
+            context["download_files"] = download_files
             context["uploaded_months"] = uploaded_months
             context["missing_months"]  = missing_months
             if req.payslip_files.exists():
@@ -719,6 +768,51 @@ def retrieval_logs_view(request):
 
 @never_cache
 @frontend_admin_required
+def download_logs_view(request):
+    logs = PayslipDownloadLog.objects.select_related("requested_by", "payslip_file").order_by("-requested_at")
+
+    selected_status = request.GET.get("status", "").strip()
+    selected_reference = request.GET.get("reference", "").strip()
+    selected_month = request.GET.get("month", "").strip()
+    selected_admin = request.GET.get("admin", "").strip()
+    selected_start_date = request.GET.get("start_date", "").strip()
+    selected_end_date = request.GET.get("end_date", "").strip()
+
+    if selected_status:
+        logs = logs.filter(status=selected_status)
+    if selected_reference:
+        logs = logs.filter(request_reference__icontains=selected_reference)
+    if selected_month:
+        logs = logs.filter(month__icontains=selected_month)
+    if selected_admin:
+        logs = logs.filter(requested_by__username__icontains=selected_admin)
+    if selected_start_date:
+        logs = logs.filter(requested_at__date__gte=selected_start_date)
+    if selected_end_date:
+        logs = logs.filter(requested_at__date__lte=selected_end_date)
+
+    page = request.GET.get("page", 1)
+    page_obj = paginate(logs, page, DOWNLOAD_LOGS_PAGE_SIZE)
+
+    return render(request, "payslip_app/admin_download_logs.html", {
+        "logs": page_obj,
+        "page_obj": page_obj,
+        "selected_status": selected_status,
+        "selected_reference": selected_reference,
+        "selected_month": selected_month,
+        "selected_admin": selected_admin,
+        "selected_start_date": selected_start_date,
+        "selected_end_date": selected_end_date,
+        "total_logs": logs.count(),
+        "success_count": logs.filter(status="success").count(),
+        "blocked_count": logs.filter(status="blocked").count(),
+        "missing_count": logs.filter(status="missing").count(),
+    })
+
+
+@never_cache
+@frontend_admin_required
+@require_POST
 def delete_retrieval_log(request, pk):
     log = get_object_or_404(PayslipRetrievalLog, pk=pk)
     audit(request, 'delete_log', target=f"Log #{pk} — {log.full_name}", detail=f"IP: {log.ip_address}")
@@ -732,13 +826,66 @@ def delete_retrieval_log(request, pk):
 # ─────────────────────────────────────────
 
 def download_payslip_view(request, file_id):
-    payslip   = get_object_or_404(PayslipFile, id=file_id)
+    payslip = PayslipFile.objects.select_related("request").filter(id=file_id).first()
+    if not payslip:
+        log_download_attempt(request, None, "blocked", "invalid_file_id")
+        raise Http404("File not found")
+
+    is_staff_admin = request.user.is_authenticated and request.user.is_staff
+
+    if not is_staff_admin:
+        token = request.GET.get("token", "").strip()
+        if not token:
+            log_download_attempt(request, payslip, "blocked", "missing_token")
+            return HttpResponseForbidden("Download token required.")
+
+        try:
+            payload = signing.loads(
+                token,
+                salt=DOWNLOAD_TOKEN_SALT,
+                max_age=DOWNLOAD_TOKEN_MAX_AGE
+            )
+        except signing.SignatureExpired:
+            log_download_attempt(request, payslip, "blocked", "expired_token")
+            return HttpResponseForbidden("Download link expired. Please check status again.")
+        except signing.BadSignature:
+            log_download_attempt(request, payslip, "blocked", "bad_signature")
+            return HttpResponseForbidden("Invalid download token.")
+
+        session_key = request.session.session_key
+        if not session_key:
+            log_download_attempt(request, payslip, "blocked", "missing_session")
+            return HttpResponseForbidden("Session expired. Please check status again.")
+
+        valid_token = (
+            payload.get('file_id') == payslip.id and
+            payload.get('request_id') == payslip.request_id and
+            payload.get('reference_number') == payslip.request.reference_number and
+            payload.get('session_key') == session_key
+        )
+        if not valid_token:
+            log_download_attempt(request, payslip, "blocked", "token_mismatch")
+            return HttpResponseForbidden("Download token does not match this file.")
+
     file_path = payslip.file.path
     if not os.path.exists(file_path):
+        log_download_attempt(request, payslip, "missing", "file_not_found_on_disk")
         raise Http404("File not found")
+
+    filename = os.path.basename(file_path)
+    if getattr(settings, "USE_X_ACCEL_REDIRECT", False):
+        protected_prefix = getattr(settings, "X_ACCEL_REDIRECT_PREFIX", "/protected-media").rstrip("/")
+        internal_path = f"{protected_prefix}/{payslip.file.name.lstrip('/').replace('\\', '/')}"
+        response = HttpResponse(content_type="application/pdf")
+        response["X-Accel-Redirect"] = internal_path
+        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        log_download_attempt(request, payslip, "success", "x_accel_redirect")
+        return response
+
     response = FileResponse(open(file_path, "rb"), as_attachment=True)
-    response["Content-Type"]        = "application/pdf"
-    response["Content-Disposition"] = f'attachment; filename="{os.path.basename(file_path)}"'
+    response["Content-Type"] = "application/pdf"
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    log_download_attempt(request, payslip, "success", "streamed_by_django")
     return response
 
 

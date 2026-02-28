@@ -1,57 +1,307 @@
-
 {% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notifications - MoF Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900:#0f2d5e; --blue-700:#1d4ed8; --blue-500:#3b82f6; --blue-100:#dbeafe; --blue-50:#eff6ff;
+  --slate-900:#0f172a; --slate-700:#334155; --slate-500:#64748b; --slate-300:#cbd5e1; --slate-100:#f1f5f9;
+  --success:#16a34a; --warning:#d97706; --danger:#dc2626;
+  --sidebar-w:260px; --radius:16px;
+  --shadow-sm:0 1px 3px rgba(15,45,94,.07); --shadow:0 4px 16px rgba(15,45,94,.10);
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'DM Sans',sans-serif; background:var(--slate-100); color:var(--slate-900); min-height:100vh; display:flex; }
+a { text-decoration:none; color:inherit; }
 
-{% block content %}
-<h1>Admin Notifications</h1>
+.sidebar {
+  width:var(--sidebar-w); min-height:100vh; background:var(--blue-900); display:flex; flex-direction:column;
+  padding:28px 18px 24px; position:fixed; top:0; left:0; bottom:0; z-index:100; box-shadow:4px 0 24px rgba(15,45,94,.18);
+}
+.sidebar-logo { display:flex; align-items:center; gap:10px; margin-bottom:36px; padding:0 8px; }
+.logo-mark {
+  width:36px; height:36px; background:var(--blue-500); border-radius:10px; display:grid; place-items:center;
+  color:white; font-weight:700;
+}
+.sidebar-logo span { font-size:1.05rem; font-weight:700; color:white; line-height:1.2; }
+.sidebar-logo small { display:block; font-size:.7rem; color:#60a5fa; font-weight:400; letter-spacing:.04em; }
+.nav-label {
+  font-size:.65rem; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#60a5fa;
+  padding:0 12px; margin-bottom:8px; margin-top:20px;
+}
+.sidebar nav a {
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+  color:rgba(255,255,255,.78); font-size:.9rem; font-weight:500; margin-bottom:4px; transition:all .2s;
+}
+.sidebar nav a:hover { background:rgba(255,255,255,.1); color:white; }
+.sidebar nav a.active { background:var(--blue-700); color:white; box-shadow:0 4px 12px rgba(29,78,216,.4); }
+.sidebar-footer { margin-top:auto; padding-top:20px; border-top:1px solid rgba(255,255,255,.1); }
+.sidebar-footer button {
+  width:100%; padding:10px; border-radius:10px; border:1px solid rgba(220,38,38,.3);
+  background:rgba(220,38,38,.15); color:#fecaca; font-size:.875rem; font-weight:600; cursor:pointer;
+}
 
-<p>Total new payrolls to notify: <strong>{{ total }}</strong></p>
+.main { margin-left:var(--sidebar-w); flex:1; padding:28px 32px; max-width:calc(100vw - var(--sidebar-w)); }
+.topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+.topbar h1 { font-size:1.5rem; color:var(--blue-900); }
+.topbar p { color:var(--slate-500); margin-top:2px; font-size:.86rem; }
+.chip {
+  display:inline-flex; align-items:center; gap:8px; background:white; border-radius:10px; padding:6px 12px 6px 6px;
+  box-shadow:var(--shadow-sm);
+}
+.chip .avatar {
+  width:28px; height:28px; border-radius:8px; background:var(--blue-700); color:white; display:grid; place-items:center;
+  font-weight:700; font-size:.78rem;
+}
+.chip span { font-size:.85rem; font-weight:600; }
 
-<table border="1" cellpadding="10" cellspacing="0">
-    <thead>
-        <tr>
-            <th>Staff Number</th>
-            <th>Full Name</th>
-            <th>Month / Year</th>
-            <th>Status</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for payroll in new_payrolls %}
-        <tr>
-            <td>{{ payroll.staff_number }}</td>
-            <td>{{ payroll.full_name }}</td>
-            <td>{{ payroll.month }} {{ payroll.year }}</td>
-            <td>{% if payroll.notified %}Sent{% else %}Pending{% endif %}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">No new payrolls</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+.summary {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:18px;
+}
+.stat {
+  background:white; border-radius:var(--radius); border:1px solid rgba(15,45,94,.06); box-shadow:var(--shadow-sm);
+  padding:18px 20px; position:relative; overflow:hidden;
+}
+.stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--blue-500); }
+.stat .label { font-size:.74rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--slate-500); margin-bottom:6px; }
+.stat .value { font-size:1.7rem; font-weight:700; font-family:'DM Mono',monospace; color:var(--blue-700); line-height:1; }
+.stat.success::before { background:var(--success); }
+.stat.warning::before { background:var(--warning); }
+.stat.success .value { color:var(--success); }
+.stat.warning .value { color:var(--warning); }
 
-<br>
-<button id="send-btn">Send Notifications</button>
+.actions {
+  background:white; border:1px solid rgba(15,45,94,.06); box-shadow:var(--shadow-sm); border-radius:var(--radius);
+  padding:16px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;
+}
+.btn {
+  display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; cursor:pointer;
+  border-radius:10px; padding:10px 14px; font-weight:700; font-size:.88rem; transition:transform .2s ease, filter .2s ease;
+}
+.btn:hover { transform:translateY(-1px); filter:brightness(1.04); }
+.btn-primary { background:var(--blue-700); color:white; }
+.btn-ghost { background:var(--slate-100); color:var(--slate-700); border:1px solid var(--slate-300); }
+.btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+
+.log {
+  display:none;
+  background:var(--blue-50); border:1px solid var(--blue-100); color:#1e3a8a;
+  border-radius:10px; padding:10px 12px; font-size:.86rem;
+}
+
+.table-card {
+  background:white; border-radius:var(--radius); border:1px solid rgba(15,45,94,.06); box-shadow:var(--shadow-sm); overflow:hidden;
+}
+.table-head {
+  padding:16px 20px; border-bottom:1px solid var(--slate-300); display:flex; justify-content:space-between; align-items:center;
+}
+.table-head h3 { font-size:1rem; color:var(--blue-900); font-weight:700; }
+.muted { background:var(--slate-100); color:var(--slate-500); font-size:.8rem; padding:3px 10px; border-radius:999px; }
+.table-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+thead tr { background:var(--blue-50); border-bottom:2px solid var(--blue-100); }
+th {
+  text-align:left; padding:12px 14px; font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--blue-700);
+}
+td { padding:11px 14px; font-size:.87rem; border-bottom:1px solid var(--slate-100); color:var(--slate-700); }
+tbody tr:hover { background:var(--blue-50); }
+.status {
+  display:inline-flex; border-radius:999px; padding:3px 9px; font-size:.72rem; font-weight:700; text-transform:uppercase;
+}
+.status.sent { background:#dcfce7; color:#166534; }
+.status.pending { background:#fef3c7; color:#92400e; }
+.empty { text-align:center; padding:24px 16px; color:var(--slate-500); font-size:.9rem; }
+
+a:focus-visible, button:focus-visible {
+  outline:3px solid var(--blue-100); outline-offset:2px;
+}
+@media (max-width:900px) { .summary { grid-template-columns:1fr; } }
+@media (max-width:768px) {
+  .sidebar { width:100%; min-height:auto; position:relative; padding:16px; }
+  .sidebar nav { display:flex; flex-wrap:wrap; gap:6px; }
+  .main { margin-left:0; max-width:100%; padding:16px; }
+  .topbar { flex-direction:column; align-items:flex-start; gap:10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+</style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">M</div>
+      <span>MoF Admin<small>Payslip Portal</small></span>
+    </div>
+    <div class="nav-label">Navigation</div>
+    <nav>
+      <a href="{% url 'admin_dashboard' %}">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Dashboard
+      </a>
+      <a href="{% url 'admin_retrieval_logs' %}">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
+        </svg>
+        Retrieval Logs
+      </a>
+      <a href="{% url 'admin_download_logs' %}">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <path d="m7 10 5 5 5-5"/>
+          <path d="M12 15V3"/>
+        </svg>
+        Download Logs
+      </a>
+      <a href="{% url 'admin_audit_logs' %}">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Audit Logs
+      </a>
+      <a href="{% url 'admin_reports' %}">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
+        </svg>
+        Reports
+      </a>
+      <a href="{% url 'admin_notifications' %}" class="active">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
+        </svg>
+        Notifications
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <form method="post" action="{% url 'admin_logout' %}">
+        {% csrf_token %}
+        <button type="submit">Sign Out</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Notifications</h1>
+        <p>Send payroll availability alerts to staff in controlled batches.</p>
+      </div>
+      <div class="chip">
+        <div class="avatar">{{ request.user.username|first|upper }}</div>
+        <span>{{ request.user.username }}</span>
+      </div>
+    </div>
+
+    <section class="summary">
+      <article class="stat warning">
+        <div class="label">Pending Notifications</div>
+        <div class="value" id="pending-count">{{ new_payrolls|length }}</div>
+      </article>
+      <article class="stat">
+        <div class="label">Batch Size</div>
+        <div class="value">20</div>
+      </article>
+      <article class="stat success">
+        <div class="label">Send Mode</div>
+        <div class="value">Live</div>
+      </article>
+    </section>
+
+    <section class="actions">
+      <button class="btn btn-primary" id="send-btn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/>
+        </svg>
+        Send Next Batch
+      </button>
+      <a class="btn btn-ghost" href="{% url 'admin_notifications' %}">Refresh List</a>
+      <div class="log" id="result-log"></div>
+    </section>
+
+    <section class="table-card">
+      <div class="table-head">
+        <h3>Pending Payroll Rows</h3>
+        <span class="muted">{{ new_payrolls|length }} item{{ new_payrolls|length|pluralize }}</span>
+      </div>
+      {% if new_payrolls %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Staff Number</th>
+              <th>Full Name</th>
+              <th>Month</th>
+              <th>Year</th>
+              <th>Reference</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for payroll in new_payrolls %}
+            <tr>
+              <td><strong>{{ payroll.staff_number }}</strong></td>
+              <td>{{ payroll.full_name }}</td>
+              <td>{{ payroll.month }}</td>
+              <td>{{ payroll.year }}</td>
+              <td>{{ payroll.reference_code|default:"-" }}</td>
+              <td>
+                <span class="status {% if payroll.notified %}sent{% else %}pending{% endif %}">
+                  {% if payroll.notified %}Sent{% else %}Pending{% endif %}
+                </span>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty">No pending payroll notifications at the moment.</div>
+      {% endif %}
+    </section>
+  </main>
 
 <script>
-document.getElementById('send-btn').addEventListener('click', function() {
-    fetch("{% url 'admin_notifications' %}", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": "{{ csrf_token }}",
-            "Content-Type": "application/json"
-        },
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(`${data.sent} notifications sent. ${data.remaining} remaining.`);
-        location.reload(); // reload to update table
-    })
-    .catch(err => {
-        alert("Error sending notifications.");
-        console.error(err);
-    });
+const sendBtn = document.getElementById('send-btn');
+const resultLog = document.getElementById('result-log');
+const pendingCount = document.getElementById('pending-count');
+
+sendBtn.addEventListener('click', function() {
+  sendBtn.disabled = true;
+  sendBtn.textContent = 'Sending...';
+
+  fetch("{% url 'admin_notifications' %}", {
+    method: "POST",
+    headers: {
+      "X-CSRFToken": "{{ csrf_token }}",
+      "Content-Type": "application/json"
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    resultLog.style.display = 'block';
+    resultLog.textContent = `${data.sent} notification(s) sent. ${data.remaining} remaining.`;
+    pendingCount.textContent = data.remaining;
+    setTimeout(() => location.reload(), 1000);
+  })
+  .catch(() => {
+    resultLog.style.display = 'block';
+    resultLog.style.borderColor = '#fecaca';
+    resultLog.style.background = '#fee2e2';
+    resultLog.style.color = '#991b1b';
+    resultLog.textContent = 'Failed to send notification batch. Please try again.';
+  })
+  .finally(() => {
+    sendBtn.disabled = false;
+    sendBtn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4Z"/></svg>Send Next Batch';
+  });
 });
 </script>
-{% endblock %}
+</body>
+</html>

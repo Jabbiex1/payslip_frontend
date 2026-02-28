@@ -1,11 +1,116 @@
-<h1>Request Payslip</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Request Payslip - MoF Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900:#0f2d5e; --blue-700:#1d4ed8; --blue-100:#dbeafe;
+  --slate-700:#334155; --slate-500:#64748b; --slate-300:#cbd5e1; --slate-100:#f1f5f9;
+  --danger:#dc2626; --gold:#f5c842;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  min-height:100vh;
+  font-family:'DM Sans',sans-serif;
+  background:
+    linear-gradient(135deg, rgba(10,25,60,.86), rgba(15,45,94,.74)),
+    url("{% static 'images/background_image.jpg' %}") center/cover no-repeat fixed;
+  padding:24px 16px;
+}
+nav {
+  position:relative; z-index:10; display:flex; justify-content:space-between; align-items:center;
+  padding:14px 20px; background:rgba(10,25,60,.45); border-bottom:1px solid rgba(255,255,255,.14); backdrop-filter:blur(10px);
+  border-radius:12px;
+  margin-bottom:14px;
+}
+.brand { color:white; font-size:.92rem; font-weight:700; text-decoration:none; }
+.back {
+  color:white; text-decoration:none; border:1px solid rgba(255,255,255,.24); border-radius:8px; padding:7px 11px;
+  font-size:.82rem; font-weight:600; background:rgba(255,255,255,.1);
+}
 
-{% if error %}
-  <p style="color:red">{{ error }}</p>
-{% endif %}
+.shell {
+  max-width:760px; width:100%; margin:0 auto; background:white; border-radius:18px; box-shadow:0 18px 42px rgba(0,0,0,.24);
+  padding:26px 24px;
+  overflow:hidden;
+}
+.eyebrow {
+  display:inline-flex; align-items:center; gap:8px; background:rgba(245,200,66,.14); border:1px solid rgba(245,200,66,.32);
+  color:#a16207; border-radius:999px; padding:5px 11px; font-size:.74rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+}
+h1 {
+  margin-top:10px; margin-bottom:8px; font-family:'DM Serif Display',serif; color:var(--blue-900); font-size:2rem; line-height:1.15;
+}
+p { color:var(--slate-500); margin-bottom:16px; }
+.error {
+  background:#fee2e2; border:1px solid #fecaca; color:#991b1b; border-radius:10px; padding:10px 12px; font-size:.88rem; margin-bottom:12px;
+}
+form {
+  background:var(--slate-100); border:1px solid var(--slate-300); border-radius:14px; padding:16px;
+}
+form p { margin-bottom:12px; color:var(--slate-700); }
+label { display:block; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; color:var(--slate-500); margin-bottom:4px; }
+input, select, textarea {
+  width:100%; border:1px solid var(--slate-300); border-radius:9px; padding:10px 11px; font-size:.9rem; font-family:'DM Sans',sans-serif;
+  background:white;
+}
+input:focus, select:focus, textarea:focus {
+  outline:none; border-color:var(--blue-700); box-shadow:0 0 0 3px rgba(59,130,246,.14);
+}
+button {
+  margin-top:8px; width:100%; border:none; border-radius:10px; background:var(--blue-700); color:white;
+  font-size:.94rem; font-weight:700; padding:11px 14px; cursor:pointer;
+}
+button:hover { filter:brightness(1.03); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline:3px solid var(--blue-100); outline-offset:2px;
+}
+@media (max-width: 768px) {
+  body { padding:16px 12px; }
+  nav { padding:12px 14px; }
+  .brand { font-size:.86rem; }
+  .back { font-size:.78rem; padding:7px 10px; }
+  .shell { border-radius:14px; padding:20px 16px; }
+  h1 { font-size:1.65rem; }
+}
+@media (max-width: 480px) {
+  nav { gap:8px; }
+  .back { white-space:nowrap; }
+  h1 { font-size:1.5rem; }
+  p { font-size:.9rem; line-height:1.55; }
+  form { padding:12px; }
+  input, select, textarea { font-size:.88rem; padding:9px 10px; }
+  button { font-size:.9rem; padding:10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+</style>
+</head>
+<body>
+  <nav>
+    <a href="{% url 'home' %}" class="brand">Ministry of Finance</a>
+    <a href="{% url 'home' %}" class="back">Back to Home</a>
+  </nav>
 
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-  <button type="submit">Generate Payslip</button>
-</form>
+  <main class="shell">
+    <span class="eyebrow">Legacy Request Form</span>
+    <h1>Request Payslip</h1>
+    <p>Use this form to submit a manual payslip generation request.</p>
+
+    {% if error %}
+    <div class="error">{{ error }}</div>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit">Generate Payslip</button>
+    </form>
+  </main>
+</body>
+</html>

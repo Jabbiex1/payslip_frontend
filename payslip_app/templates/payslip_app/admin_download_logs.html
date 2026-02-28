@@ -1,0 +1,229 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Download Logs - MoF Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900:#0f2d5e;--blue-800:#1a3f7a;--blue-700:#1d4ed8;--blue-500:#3b82f6;
+  --blue-400:#60a5fa;--blue-100:#dbeafe;--blue-50:#eff6ff;
+  --slate-900:#0f172a;--slate-700:#334155;--slate-500:#64748b;
+  --slate-300:#cbd5e1;--slate-100:#f1f5f9;
+  --success:#16a34a;--warning:#d97706;--danger:#dc2626;
+  --sidebar-w:260px;--radius:16px;
+  --shadow-sm:0 1px 3px rgba(15,45,94,.07);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--slate-100);color:var(--slate-900);min-height:100vh;display:flex;}
+a{text-decoration:none;color:inherit;}
+
+.sidebar{width:var(--sidebar-w);min-height:100vh;background:var(--blue-900);display:flex;flex-direction:column;padding:28px 18px 24px;position:fixed;top:0;left:0;bottom:0;z-index:100;box-shadow:4px 0 24px rgba(15,45,94,.18);}
+.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:36px;padding:0 8px;}
+.logo-mark{width:36px;height:36px;background:var(--blue-500);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:white;font-size:1rem;flex-shrink:0;}
+.sidebar-logo span{font-size:1.05rem;font-weight:700;color:white;line-height:1.2;}
+.sidebar-logo small{display:block;font-size:0.7rem;color:var(--blue-400);font-weight:400;letter-spacing:.04em;}
+.nav-label{font-size:0.65rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-400);padding:0 12px;margin-bottom:8px;margin-top:20px;}
+.sidebar nav a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:rgba(255,255,255,.75);font-size:0.9rem;font-weight:500;margin-bottom:4px;transition:all .2s;}
+.sidebar nav a svg{opacity:.7;flex-shrink:0;}
+.sidebar nav a:hover{background:rgba(255,255,255,.1);color:white;}
+.sidebar nav a.active{background:var(--blue-700);color:white;box-shadow:0 4px 12px rgba(29,78,216,.4);}
+.sidebar-footer{margin-top:auto;padding-top:20px;border-top:1px solid rgba(255,255,255,.1);}
+.sidebar-footer form button{width:100%;padding:10px;background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.3);border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:0.875rem;cursor:pointer;transition:all .2s;}
+.sidebar-footer form button:hover{background:rgba(220,38,38,.3);color:#fecaca;}
+
+.main{margin-left:var(--sidebar-w);flex:1;padding:28px 32px;max-width:calc(100vw - var(--sidebar-w));}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.topbar h1{font-size:1.5rem;font-weight:700;color:var(--blue-900);}
+.topbar p{font-size:0.85rem;color:var(--slate-500);margin-top:2px;}
+.user-chip{display:flex;align-items:center;gap:8px;background:white;border-radius:10px;padding:6px 12px 6px 6px;box-shadow:var(--shadow-sm);}
+.user-avatar{width:28px;height:28px;background:var(--blue-700);border-radius:8px;display:flex;align-items:center;justify-content:center;color:white;font-size:0.75rem;font-weight:700;}
+.user-chip span{font-size:0.85rem;font-weight:600;}
+
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px;}
+.stat-card{background:white;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow-sm);border:1px solid rgba(15,45,94,.06);}
+.stat-label{font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--slate-500);margin-bottom:6px;}
+.stat-value{font-size:1.8rem;font-weight:700;font-family:'DM Mono',monospace;line-height:1;}
+.stat-success .stat-value{color:var(--success);}
+.stat-blocked .stat-value{color:var(--danger);}
+.stat-missing .stat-value{color:var(--warning);}
+
+.filter-card{background:white;border-radius:var(--radius);padding:20px 24px;box-shadow:var(--shadow-sm);border:1px solid rgba(15,45,94,.06);margin-bottom:20px;}
+.filter-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;}
+.filter-group{display:flex;flex-direction:column;gap:4px;}
+.filter-group label{font-size:0.72rem;font-weight:600;color:var(--slate-500);text-transform:uppercase;letter-spacing:.05em;}
+.filter-group input,.filter-group select{font-family:'DM Sans',sans-serif;font-size:0.875rem;padding:8px 12px;border:1px solid var(--slate-300);border-radius:8px;background:white;color:var(--slate-900);min-width:150px;}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;border:none;cursor:pointer;text-decoration:none;}
+.btn-primary{background:var(--blue-700);color:white;}
+.btn-ghost{background:var(--slate-100);color:var(--slate-700);border:1px solid var(--slate-300);}
+
+.table-card{background:white;border-radius:var(--radius);box-shadow:var(--shadow-sm);border:1px solid rgba(15,45,94,.06);overflow:hidden;}
+.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--slate-300);}
+.table-card-header h3{font-size:1rem;font-weight:700;color:var(--blue-900);}
+.record-count{font-size:0.8rem;color:var(--slate-500);background:var(--slate-100);padding:3px 10px;border-radius:20px;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead tr{background:var(--blue-50);border-bottom:2px solid var(--blue-100);}
+th{text-align:left;padding:12px 16px;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--blue-700);white-space:nowrap;}
+td{padding:12px 16px;font-size:0.875rem;border-bottom:1px solid var(--slate-100);color:var(--slate-700);white-space:nowrap;}
+tbody tr:last-child td{border-bottom:none;}
+
+.status-badge{display:inline-flex;align-items:center;font-size:0.72rem;font-weight:600;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.04em;}
+.status-badge.success{background:#d1fae5;color:#065f46;}
+.status-badge.blocked{background:#fee2e2;color:#991b1b;}
+.status-badge.missing{background:#fef3c7;color:#92400e;}
+.mono{font-family:'DM Mono',monospace;font-size:0.82rem;}
+
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-top:1px solid var(--slate-300);flex-wrap:wrap;gap:10px;}
+.pagination-info{font-size:0.82rem;color:var(--slate-500);}
+.pagination-controls{display:flex;gap:4px;align-items:center;}
+.page-btn{display:inline-flex;align-items:center;justify-content:center;min-width:32px;height:32px;padding:0 8px;background:white;border:1px solid var(--slate-300);border-radius:7px;font-size:0.82rem;color:var(--slate-700);}
+.page-btn.active{background:var(--blue-700);border-color:var(--blue-700);color:white;font-weight:700;}
+
+.empty-state{text-align:center;padding:70px 20px;color:var(--slate-500);}
+
+@media(max-width:768px){
+  .sidebar{width:100%;min-height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:16px;}
+  .sidebar nav{display:flex;flex-wrap:wrap;gap:6px;}
+  .sidebar nav a{margin-bottom:0;}
+  .main{margin-left:0;padding:16px;max-width:100%;}
+  .stats-row{grid-template-columns:1fr;}
+  .filter-row{flex-direction:column;}
+  .filter-group input,.filter-group select{min-width:100%;}
+}
+</style>
+</head>
+<body>
+  {% include 'payslip_app/admin_sidebar.html' %}
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Download Logs</h1>
+        <p>Tracks payslip file downloads by users and admins.</p>
+      </div>
+      <div class="user-chip">
+        <div class="user-avatar">{{ request.user.username|first|upper }}</div>
+        <span>{{ request.user.username }}</span>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card stat-success"><div class="stat-label">Success</div><div class="stat-value">{{ success_count }}</div></div>
+      <div class="stat-card stat-blocked"><div class="stat-label">Blocked</div><div class="stat-value">{{ blocked_count }}</div></div>
+      <div class="stat-card stat-missing"><div class="stat-label">Missing</div><div class="stat-value">{{ missing_count }}</div></div>
+    </div>
+
+    <div class="filter-card">
+      <form method="get" class="filter-row">
+        <div class="filter-group">
+          <label>Status</label>
+          <select name="status">
+            <option value="">All</option>
+            <option value="success" {% if selected_status == 'success' %}selected{% endif %}>Success</option>
+            <option value="blocked" {% if selected_status == 'blocked' %}selected{% endif %}>Blocked</option>
+            <option value="missing" {% if selected_status == 'missing' %}selected{% endif %}>Missing</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Reference</label>
+          <input type="text" name="reference" value="{{ selected_reference }}" placeholder="PS-XXXXXXX">
+        </div>
+        <div class="filter-group">
+          <label>Month</label>
+          <input type="text" name="month" value="{{ selected_month }}" placeholder="January">
+        </div>
+        <div class="filter-group">
+          <label>Admin/User</label>
+          <input type="text" name="admin" value="{{ selected_admin }}" placeholder="username">
+        </div>
+        <div class="filter-group">
+          <label>From</label>
+          <input type="date" name="start_date" value="{{ selected_start_date }}">
+        </div>
+        <div class="filter-group">
+          <label>To</label>
+          <input type="date" name="end_date" value="{{ selected_end_date }}">
+        </div>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{% url 'admin_download_logs' %}" class="btn btn-ghost">Reset</a>
+      </form>
+    </div>
+
+    <div class="table-card">
+      <div class="table-card-header">
+        <h3>Download Events</h3>
+        <span class="record-count">{{ total_logs }} total</span>
+      </div>
+
+      {% if logs %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Reference</th>
+              <th>Month</th>
+              <th>Status</th>
+              <th>Reason</th>
+              <th>IP</th>
+              <th>Session</th>
+              <th>User</th>
+              <th>File ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+            <tr>
+              <td>{{ log.requested_at|date:"d M Y, H:i" }}</td>
+              <td class="mono">{{ log.request_reference|default:"-" }}</td>
+              <td>{{ log.month|default:"-" }}</td>
+              <td><span class="status-badge {{ log.status }}">{{ log.status }}</span></td>
+              <td>{{ log.reason|default:"-" }}</td>
+              <td class="mono">{{ log.ip_address|default:"-" }}</td>
+              <td class="mono">{{ log.session_key|default:"-"|truncatechars:18 }}</td>
+              <td>{{ log.requested_by.username|default:"Public user" }}</td>
+              <td class="mono">{% if log.payslip_file_id %}{{ log.payslip_file_id }}{% else %}-{% endif %}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if page_obj.has_other_pages %}
+      <div class="pagination">
+        <span class="pagination-info">
+          Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }}
+        </span>
+        <div class="pagination-controls">
+          {% if page_obj.has_previous %}
+          <a class="page-btn" href="?page=1&status={{ selected_status }}&reference={{ selected_reference }}&month={{ selected_month }}&admin={{ selected_admin }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">«</a>
+          <a class="page-btn" href="?page={{ page_obj.previous_page_number }}&status={{ selected_status }}&reference={{ selected_reference }}&month={{ selected_month }}&admin={{ selected_admin }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">‹</a>
+          {% endif %}
+          {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+              <span class="page-btn active">{{ num }}</span>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+              <a class="page-btn" href="?page={{ num }}&status={{ selected_status }}&reference={{ selected_reference }}&month={{ selected_month }}&admin={{ selected_admin }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">{{ num }}</a>
+            {% endif %}
+          {% endfor %}
+          {% if page_obj.has_next %}
+          <a class="page-btn" href="?page={{ page_obj.next_page_number }}&status={{ selected_status }}&reference={{ selected_reference }}&month={{ selected_month }}&admin={{ selected_admin }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">›</a>
+          <a class="page-btn" href="?page={{ page_obj.paginator.num_pages }}&status={{ selected_status }}&reference={{ selected_reference }}&month={{ selected_month }}&admin={{ selected_admin }}&start_date={{ selected_start_date }}&end_date={{ selected_end_date }}">»</a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% else %}
+      <div class="empty-state">
+        <p>No download logs found for the current filters.</p>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</body>
+</html>

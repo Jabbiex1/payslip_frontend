@@ -133,3 +133,6 @@ CELERY_BROKER_URL      = 'redis://localhost:6379/0'
 CELERY_RESULT_BACKEND  = 'redis://localhost:6379/0'
 CELERY_TASK_ACKS_LATE  = True
 CELERY_TASK_TIME_LIMIT = 300
+
+# Private media acceleration is disabled in local dev.
+USE_X_ACCEL_REDIRECT = False

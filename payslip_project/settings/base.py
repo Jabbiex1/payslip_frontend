@@ -101,6 +101,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+USE_X_ACCEL_REDIRECT = False
+X_ACCEL_REDIRECT_PREFIX = "/protected-media"
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

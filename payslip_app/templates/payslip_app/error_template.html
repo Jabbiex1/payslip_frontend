@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Something Went Wrong - MoF Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-900:#0f2d5e; --blue-700:#1d4ed8; --blue-100:#dbeafe;
+  --slate-700:#334155; --slate-500:#64748b;
+  --danger:#dc2626; --gold:#f5c842;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  min-height:100vh;
+  font-family:'DM Sans',sans-serif;
+  display:grid;
+  place-items:center;
+  background:
+    linear-gradient(135deg, rgba(10,25,60,.88), rgba(15,45,94,.72)),
+    url("{% static 'images/background_image.jpg' %}") center/cover no-repeat fixed;
+  color:white;
+  padding:24px;
+}
+.card {
+  max-width:620px;
+  width:100%;
+  background:rgba(255,255,255,.09);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:20px;
+  padding:32px 28px;
+  backdrop-filter:blur(10px);
+  box-shadow:0 16px 40px rgba(0,0,0,.28);
+}
+.eyebrow {
+  display:inline-flex;
+  gap:8px;
+  align-items:center;
+  padding:6px 12px;
+  border-radius:999px;
+  background:rgba(245,200,66,.15);
+  border:1px solid rgba(245,200,66,.35);
+  color:var(--gold);
+  font-size:.76rem;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  margin-bottom:14px;
+}
+h1 {
+  font-family:'DM Serif Display',serif;
+  font-size:2rem;
+  line-height:1.15;
+  margin-bottom:10px;
+}
+p { color:rgba(255,255,255,.86); line-height:1.7; margin-bottom:20px; }
+.meta {
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:12px;
+  padding:12px 14px;
+  color:rgba(255,255,255,.82);
+  font-size:.88rem;
+  margin-bottom:18px;
+}
+.actions { display:flex; gap:10px; flex-wrap:wrap; }
+.btn {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  text-decoration:none;
+  border-radius:10px;
+  padding:10px 14px;
+  font-size:.88rem;
+  font-weight:700;
+  transition:transform .2s ease, filter .2s ease;
+}
+.btn:hover { transform:translateY(-1px); filter:brightness(1.04); }
+.btn-primary { background:var(--blue-700); color:white; }
+.btn-ghost {
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.24);
+  color:white;
+}
+a:focus-visible, button:focus-visible {
+  outline:3px solid var(--blue-100);
+  outline-offset:2px;
+}
+@media (max-width: 768px) {
+  body { padding:16px; place-items:start center; }
+  .card { border-radius:16px; padding:24px 18px; margin-top:10px; }
+  h1 { font-size:1.65rem; }
+  p { line-height:1.62; }
+}
+@media (max-width: 480px) {
+  body { padding:12px; }
+  .card { border-radius:14px; padding:20px 14px; }
+  .eyebrow { font-size:.7rem; padding:5px 9px; }
+  h1 { font-size:1.45rem; }
+  p { font-size:.92rem; margin-bottom:16px; }
+  .meta { font-size:.82rem; padding:10px 11px; }
+  .actions { flex-direction:column; }
+  .btn { width:100%; font-size:.84rem; padding:10px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+</style>
+</head>
+<body>
+  <section class="card">
+    <span class="eyebrow">Service Notice</span>
+    <h1>We could not complete that request.</h1>
+    <p>
+      The portal hit an unexpected issue while processing your action.
+      Please try again in a moment. If the problem continues, contact the ICT Directorate.
+    </p>
+    <div class="meta">
+      Error reference: <strong>{{ request.path }}</strong>
+    </div>
+    <div class="actions">
+      <a href="{% url 'home' %}" class="btn btn-primary">Return to Home</a>
+      <a href="javascript:history.back()" class="btn btn-ghost">Go Back</a>
+    </div>
+  </section>
+</body>
+</html>

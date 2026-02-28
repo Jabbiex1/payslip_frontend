@@ -136,3 +136,7 @@ CELERY_BROKER_URL      = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
 CELERY_RESULT_BACKEND  = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/0')
 CELERY_TASK_ACKS_LATE  = True
 CELERY_TASK_TIME_LIMIT = 300
+
+# Use Nginx internal redirect for private media downloads.
+USE_X_ACCEL_REDIRECT = True
+X_ACCEL_REDIRECT_PREFIX = "/protected-media"

@@ -29,7 +29,7 @@ body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
 
 .bg {
   position: fixed; inset: 0; z-index: -1;
-  background: url("{% static 'images/background_image.jpg' %}") center/cover no-repeat;
+  background: url("{% static 'images/background2.jpg' %}") center/cover no-repeat;
   animation: bgZoom 22s ease-in-out infinite alternate;
 }
 .bg::after {
@@ -39,7 +39,7 @@ body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
 @keyframes bgZoom { from { transform:scale(1); } to { transform:scale(1.07); } }
 
 nav {
-  position: fixed; top:0; left:0; right:0; z-index:10;
+  position: relative; z-index:10;
   display:flex; align-items:center; justify-content:space-between;
   padding:16px 40px;
   background: rgba(10,25,60,.4);
@@ -62,7 +62,7 @@ nav {
 .page {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  padding: 100px 24px 48px;
+  padding: 40px 24px 48px;
 }
 .page-inner {
   display: flex; gap: 48px; max-width: 1000px; width:100%;
@@ -211,9 +211,17 @@ nav {
 }
 @keyframes spin { to { transform:rotate(360deg); } }
 
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline:3px solid var(--blue-100);
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+
 @media(max-width:900px){
   nav { padding:14px 20px; }
-  .page { padding:80px 16px 32px; }
+  .page { padding:28px 16px 32px; }
   .page-inner { flex-direction:column; gap:24px; }
   .left h1 { font-size:2rem; }
   .form-card { padding:24px 20px; max-width:100%; }
@@ -277,10 +285,10 @@ nav {
         {% if uploaded_months %}
         <div class="section-label">Ready to Download</div>
         <div class="download-list">
-          {% for f in req.payslip_files.all %}
+          {% for f in download_files %}
           <div class="download-item">
             <span>{{ f.month }}</span>
-            <a href="{% url 'download_payslip' f.id %}" class="download-link">
+            <a href="{% url 'download_payslip' f.id %}?token={{ f.download_token|urlencode }}" class="download-link">
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
               Download
             </a>
@@ -348,10 +356,10 @@ nav {
           {% if uploaded_months %}
           <div class="section-label" style="margin-top:16px;">Available for Download</div>
           <div class="download-list">
-            {% for f in req.payslip_files.all %}
+            {% for f in download_files %}
             <div class="download-item">
               <span>{{ f.month }}</span>
-              <a href="{% url 'download_payslip' f.id %}" class="download-link">
+              <a href="{% url 'download_payslip' f.id %}?token={{ f.download_token|urlencode }}" class="download-link">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
                 Download
               </a>

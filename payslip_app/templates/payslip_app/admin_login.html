@@ -27,7 +27,7 @@ body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
 
 .bg {
   position: fixed; inset: 0; z-index: -1;
-  background: url("{% static 'images/background_image.jpg' %}") center/cover no-repeat;
+  background: url("{% static 'images/background2.jpg' %}") center/cover no-repeat;
   animation: bgZoom 22s ease-in-out infinite alternate;
 }
 .bg::after {
@@ -38,7 +38,7 @@ body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
 
 /* NAV */
 nav {
-  position: fixed; top:0; left:0; right:0; z-index:10;
+  position: relative; z-index:10;
   display:flex; align-items:center; justify-content:space-between;
   padding:16px 40px;
   background: rgba(10,25,60,.4);
@@ -62,7 +62,7 @@ nav {
 .page {
   min-height: 100vh;
   display: flex; align-items: center; justify-content: center;
-  padding: 100px 24px 48px;
+  padding: 40px 24px 48px;
 }
 .page-inner {
   display: flex; gap: 48px; max-width: 980px; width:100%;
@@ -189,10 +189,18 @@ nav {
   font-size:0.78rem; color:var(--slate-500);
 }
 
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline:3px solid var(--blue-100);
+  outline-offset:2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
+}
+
 /* MOBILE */
 @media(max-width:900px){
   nav { padding:14px 20px; }
-  .page { padding:80px 16px 32px; }
+  .page { padding:28px 16px 32px; }
   .page-inner { flex-direction:column; gap:24px; align-items:center; }
   .left { text-align:center; }
   .left p { max-width:100%; }

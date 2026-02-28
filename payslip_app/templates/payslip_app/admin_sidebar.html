@@ -1,7 +1,56 @@
-  <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2>MoF Admin</h2>
-        <a href="{% url 'admin_dashboard' %}">Dashboard</a>
-        <a href="{% url 'admin_reports' %}">Reports</a>
-        <a href="{% url 'admin_logout' %}">Logout</a>
-    </div>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">M</div>
+    <span>MoF Admin<small>Payslip Portal</small></span>
+  </div>
+
+  <div class="nav-label">Navigation</div>
+  <nav>
+    <a href="{% url 'admin_dashboard' %}" class="{% if '/frontend-admin/dashboard/' in request.path %}active{% endif %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Dashboard
+    </a>
+    <a href="{% url 'admin_retrieval_logs' %}" class="{% if 'retrieval-logs' in request.path %}active{% endif %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
+      </svg>
+      Retrieval Logs
+    </a>
+    <a href="{% url 'admin_download_logs' %}" class="{% if 'download-logs' in request.path %}active{% endif %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <path d="m7 10 5 5 5-5"/>
+        <path d="M12 15V3"/>
+      </svg>
+      Download Logs
+    </a>
+    <a href="{% url 'admin_audit_logs' %}" class="{% if 'audit-logs' in request.path %}active{% endif %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      </svg>
+      Audit Logs
+    </a>
+    <a href="{% url 'admin_reports' %}" class="{% if 'reports' in request.path %}active{% endif %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
+      </svg>
+      Reports
+    </a>
+    <a href="{% url 'admin_notifications' %}" class="{% if 'notifications' in request.path %}active{% endif %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/>
+      </svg>
+      Notifications
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <form method="post" action="{% url 'admin_logout' %}">
+      {% csrf_token %}
+      <button type="submit">Sign Out</button>
+    </form>
+  </div>
+</aside>

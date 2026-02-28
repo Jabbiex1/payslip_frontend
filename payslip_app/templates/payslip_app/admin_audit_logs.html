@@ -123,6 +123,11 @@ tbody tr:hover{background:var(--blue-50);}
 .empty-state svg{margin:0 auto 14px;display:block;opacity:.3;}
 .empty-state p{font-size:0.9rem;}
 
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline:3px solid var(--blue-100);
+  outline-offset:2px;
+}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .sidebar{width:100%;min-height:auto;position:relative;flex-direction:row;flex-wrap:wrap;padding:16px;}
@@ -132,6 +137,9 @@ tbody tr:hover{background:var(--blue-50);}
   .stats-row{grid-template-columns:repeat(2,1fr);}
   .filter-row{flex-direction:column;}
   .filter-group input,.filter-group select{min-width:100%;}
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation:none !important; transition:none !important; }
 }
 </style>
 </head>
@@ -153,9 +161,17 @@ tbody tr:hover{background:var(--blue-50);}
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
       Retrieval Logs
     </a>
+    <a href="{% url 'admin_download_logs' %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></svg>
+      Download Logs
+    </a>
     <a href="{% url 'admin_audit_logs' %}" class="active">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
       Audit Logs
+    </a>
+    <a href="{% url 'admin_reports' %}">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+      Reports
     </a>
     <a href="{% url 'admin_notifications' %}">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0 1 18 14.158V11a6 6 0 0 0-5-5.917V4a1 1 0 1 0-2 0v1.083A6 6 0 0 0 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9"/></svg>
