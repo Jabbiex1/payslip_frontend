@@ -136,3 +136,21 @@ CELERY_TASK_TIME_LIMIT = 300
 
 # Private media acceleration is disabled in local dev.
 USE_X_ACCEL_REDIRECT = False
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'payslip_db',
+        'USER': 'payslip_user',
+        'PASSWORD': 'Manager++',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'mock_payslips': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'mock_payslips',
+        'USER': 'postgres',
+        'PASSWORD': 'Manager++',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
