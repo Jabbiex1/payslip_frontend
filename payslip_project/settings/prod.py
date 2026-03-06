@@ -23,8 +23,7 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://mof-payslip-portal.onrender.com",
-    "https://*.onrender.com",
+    "https://mof-payslip-portal.onrender.com"
 ]
 
 ADMIN_URL = os.environ.get("ADMIN_URL", "secure-admin/")
