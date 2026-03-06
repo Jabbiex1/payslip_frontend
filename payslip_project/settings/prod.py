@@ -78,18 +78,9 @@ AUTHENTICATION_BACKENDS = [
 # DATABASES
 # ─────────────────────────────────────────
 DATABASES = {
-    "default": dj_database_url.config(
-        env="DATABASE_URL",
-        conn_max_age=600,
-        ssl_require=True,
-    ),
-    "mock_payslips": dj_database_url.config(
-        env="MOCK_PAYSLIPS_URL",
-        conn_max_age=600,
-        ssl_require=True,
-    ),
+    'default': dj_database_url.config(default=os.environ.get('DATABASE_URL'), conn_max_age=600),
+    'mock_payslips': dj_database_url.config(default=os.environ.get('MOCK_PAYSLIPS_URL'), conn_max_age=600),
 }
-
 DATABASE_ROUTERS = ["payslip_app.db_routers.PayslipRouter"]
 
 # ─────────────────────────────────────────
