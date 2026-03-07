@@ -27,6 +27,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 ADMIN_URL = os.environ.get("ADMIN_URL", "secure-admin/")
+# Redirect login requests for superuser/admin
+LOGIN_URL = f"/{ADMIN_URL}"  # ensures /x92k-secret-admin/ is used
 
 # ─────────────────────────────────────────
 # APPLICATIONS
@@ -231,3 +233,14 @@ TIME_ZONE = "UTC"
 
 USE_I18N = True
 USE_TZ = True
+
+# ─────────────────────────────────────────
+# AUTHENTICATION REDIRECTS
+# ─────────────────────────────────────────
+# Frontend admin login
+LOGIN_URL = "/frontend-admin/login/"
+LOGIN_REDIRECT_URL = "/frontend-admin/dashboard/"
+LOGOUT_REDIRECT_URL = "/frontend-admin/login/"
+
+
+# Uses ADMIN_URL already defined above
