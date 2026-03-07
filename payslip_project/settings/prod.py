@@ -29,6 +29,8 @@ CSRF_TRUSTED_ORIGINS = [
 ADMIN_URL = os.environ.get("ADMIN_URL", "secure-admin/")
 # Redirect login requests for superuser/admin
 LOGIN_URL = f"/{ADMIN_URL}"  # ensures /x92k-secret-admin/ is used
+# Allow admin login without 2FA
+TWO_FACTOR_FORCE_OTP_ADMIN = False
 
 # ─────────────────────────────────────────
 # APPLICATIONS
