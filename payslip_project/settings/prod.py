@@ -247,3 +247,6 @@ LOGOUT_REDIRECT_URL = "/frontend-admin/login/"
 
 # Uses ADMIN_URL already defined above
 OTP_ADMIN_SITE = False
+
+TWO_FACTOR_FORCE_OTP_ADMIN = False
+TWO_FACTOR_PATCH_ADMIN = False
