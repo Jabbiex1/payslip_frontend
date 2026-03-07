@@ -259,3 +259,5 @@ AWS_S3_ENDPOINT_URL = os.environ.get('AWS_S3_ENDPOINT_URL')
 AWS_DEFAULT_ACL = 'public-read'
 AWS_S3_FILE_OVERWRITE = False
 MEDIA_URL = f"{os.environ.get('AWS_S3_ENDPOINT_URL')}/object/public/{os.environ.get('AWS_STORAGE_BUCKET_NAME')}/"
+
+SECURE_HSTS_PRELOAD = True

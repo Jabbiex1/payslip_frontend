@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content">
 <title>Generate Payslip — MoF Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
 <style>
@@ -30,6 +30,7 @@ body, html { height:100%; overflow-x:hidden; font-family:'DM Sans',sans-serif; }
   position: fixed; inset: 0; z-index: -1;
   background: url("{% static 'images/background2.jpg' %}") center/cover no-repeat;
   animation: bgZoom 22s ease-in-out infinite alternate;
+  will-change: transform;
 }
 .bg::after {
   content:''; position:absolute; inset:0;
@@ -59,7 +60,7 @@ nav {
 .nav-back:hover { background:rgba(255,255,255,.2); }
 
 .page {
-  min-height: 100vh;
+  min-height: 100svh;
   display: flex; align-items: center; justify-content: center;
   padding: 40px 24px 48px;
 }
