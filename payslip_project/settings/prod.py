@@ -83,7 +83,8 @@ DATABASES = {
     ),
     'mock_payslips': dj_database_url.parse(
         os.environ.get('MOCK_PAYSLIPS_URL', ''),
-        conn_max_age=600
+        conn_max_age=600,
+        ssl_require=True
     ),
 }
 DATABASE_ROUTERS = ["payslip_app.db_routers.PayslipRouter"]
