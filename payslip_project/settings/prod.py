@@ -90,12 +90,11 @@ DATABASES = {
 DATABASE_ROUTERS = ["payslip_app.db_routers.PayslipRouter"]
 
 # ─────────────────────────────────────────
-# CACHE (REDIS)
+# CACHE (local memory - no Redis on free tier)
 # ─────────────────────────────────────────
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.redis.RedisCache",
-        "LOCATION": os.environ.get("REDIS_URL"),
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
 
@@ -191,13 +190,36 @@ RATELIMIT_USE_CACHE = "default"
 RATELIMIT_FAIL_OPEN = False
 
 # ─────────────────────────────────────────
-# CELERY
+# CELERY (disabled on free tier - no Redis)
 # ─────────────────────────────────────────
-CELERY_BROKER_URL = os.environ.get("REDIS_URL")
-CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL")
-
+CELERY_BROKER_URL = os.environ.get("REDIS_URL", "memory://")
+CELERY_RESULT_BACKEND = os.environ.get("REDIS_URL", "cache+memory://")
 CELERY_TASK_ACKS_LATE = True
 CELERY_TASK_TIME_LIMIT = 300
+
+# ─────────────────────────────────────────
+# LOGGING
+# ─────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'ERROR',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
 
 # ─────────────────────────────────────────
 # DJANGO DEFAULTS
